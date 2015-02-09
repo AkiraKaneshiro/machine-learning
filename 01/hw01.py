@@ -79,8 +79,6 @@ def log_likelihood(sample):
     n = len(sample)
     mu = MLE_mu(sample)
     var = MLE_var(sample)
-    assert mu == sample.mean()
-    assert var == sample.std() ** 2
     term1 = -(n/2.) * math.log(2 * math.pi)
     term2 = -(n/2.) * math.log(var)
     term3 = -(1 / (2. * var)) * sum([(x - mu) ** 2 for x in sample])
@@ -88,12 +86,16 @@ def log_likelihood(sample):
 
 def MLE_mu(sample):
     data = sample.values
-    return sum(data) / float(len(data))
+    mu = sum(data) / float(len(data))
+    assert mu - data.mean() < .00001 # Error tolerance
+    return mu
 
 def MLE_var(sample):
     mu = MLE_mu(sample)
     data = sample.values
-    return sum([(x - mu) ** 2 for x in data]) / float(len(data))
+    var = sum([(x - mu) ** 2 for x in data]) / float(len(data))
+    assert var - (data.std() ** 2) < .001 # Error tolerance
+    return var
 
 ### Visualization methods
 def plot_errors_hist(errors):
@@ -102,7 +104,7 @@ def plot_errors_hist(errors):
     for i, p in enumerate(errors):
         plot = axes[i / 2][i % 2]
         data = errors[p].values
-        plot.hist(data, bins=100, label='p={}'.format(p), color=colors[i])
+        plot.hist(data, bins=50, label='p={}'.format(p), color=colors[i])
         plot.legend(loc='best')
     plt.show()
 
@@ -113,14 +115,16 @@ def print_RMSE_by_p(RMSEs):
     for p in RMSEs:
         data = RMSEs[p]
         print p, '\t', data.mean(), '\t', data.std()
+    print
 
 def print_log_likelihood_by_p(errors):
     print 50 * '#'
     print 'Error distribution and likelihood as a function of p:'
-    print 'p', '\tMu', '\t\t\tVar', '\t\t\tLog Likelihood'
+    print 'p', '\tMean', '\t\t\tVar', '\t\tLog Likelihood'
     for p in errors:
         data = errors[p]
         print p, '\t', data.mean(), '\t', data.std(), '\t', log_likelihood(data)
+    print
 
 
 ########################
@@ -203,8 +207,8 @@ if __name__ == '__main__':
     MAES = part1()
     RMSE, errors = part2()
     print_RMSE_by_p(RMSE) # 3.2.a
-    plot_errors_hist(errors) # 3.2.b
     print_log_likelihood_by_p(errors) # 3.2.c
+    plot_errors_hist(errors) # 3.2.b
 
 
 
