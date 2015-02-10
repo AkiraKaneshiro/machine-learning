@@ -1,3 +1,7 @@
+### Daniel Kronovet (dbk2123)
+### COMS W4721 HW 01
+### Feb 10, 2015
+
 import math
 import random
 
@@ -10,7 +14,7 @@ TEST_SIZE = 20
 
 X_orig = pd.read_csv('data_csv/X.txt', header=None)
 y_orig = pd.read_csv('data_csv/y.txt', header=None)
-columns = ['intrcpt', 'num cyl', 'displacement', 'hp', 'weight', 'accel', 'year']
+columns = ['intrcpt', 'num cyl', 'displ', 'hp', 'weight', 'accel', 'year']
 X_orig.columns = columns
 X, y = X_orig, y_orig
 
@@ -74,7 +78,7 @@ def get_MAE(y, y_hat):
 def get_RMSE(y, y_hat):
     return math.sqrt(((y - y_hat) ** 2).sum() / len(y))
 
-### Log likelihood operations
+### Log likelihood function
 def log_likelihood(sample):
     n = len(sample)
     mu = MLE_mu(sample)
@@ -84,17 +88,18 @@ def log_likelihood(sample):
     term3 = -(1 / (2. * var)) * sum([(x - mu) ** 2 for x in sample])
     return term1 + term2 + term3
 
+### Maximum Likelihood Estimators
 def MLE_mu(sample):
     data = sample.values
-    mu = sum(data) / float(len(data))
+    mu = sum(data) / float(len(data)) # Unbiased estimator
     assert mu - data.mean() < .00001 # Error tolerance
     return mu
 
 def MLE_var(sample):
     mu = MLE_mu(sample)
     data = sample.values
-    var = sum([(x - mu) ** 2 for x in data]) / float(len(data))
-    assert var - (data.std() ** 2) < .001 # Error tolerance
+    var = sum([(x - mu) ** 2 for x in data]) / float(len(data)-1) # Unbiased estimator
+    assert var - (sample.std() ** 2) < .00001 # Error tolerance
     return var
 
 ### Visualization methods
@@ -125,7 +130,6 @@ def print_log_likelihood_by_p(errors):
         data = errors[p]
         print p, '\t', data.mean(), '\t', data.std(), '\t', log_likelihood(data)
     print
-
 
 ########################
 ### Analysis scripts ###
@@ -165,8 +169,8 @@ def part1():
     print
     return MAEs
 
-def part2(p_list=None):
-    p_list = p_list or [1,2,3,4]
+def part2():
+    p_list = [1,2,3,4]
     RMSE_by_p = {}
     errors_by_p = {}
     for p in p_list:
@@ -209,10 +213,3 @@ if __name__ == '__main__':
     print_RMSE_by_p(RMSE) # 3.2.a
     print_log_likelihood_by_p(errors) # 3.2.c
     plot_errors_hist(errors) # 3.2.b
-
-
-
-
-
-
-
