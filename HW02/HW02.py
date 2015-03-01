@@ -2,6 +2,13 @@
 ### COMS W4721 HW 02
 ### March 3, 2015
 
+'''
+from HW02 import *
+import core.classifiers as c
+knn = c.KNN(X_train, label_train)
+bayes = c.Bayes(X_train, label_train)
+'''
+
 import os
 
 import pandas as pd
@@ -18,5 +25,13 @@ X_train = pd.read_csv(path + '/mnist_csv/Xtrain.txt', header=None)
 label_train = pd.read_csv(path + '/mnist_csv/label_train.txt', header=None)
 Q = pd.read_csv(path + '/mnist_csv/Q.txt', header=None)
 
+def problem_3a():
+    KNN = classifiers.KNN(X_train, label_train, k=1)
+    for k in [1,2,3]:
+        KNN.k = k
+        KNN.classify_all(X_test)
+        print 'Confusion matrix for k=', k
+        print KNN.get_confusion_matrix()
+
 if __name__ == '__main__':
-    pass
+    problem_3a()
