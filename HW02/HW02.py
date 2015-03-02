@@ -6,6 +6,7 @@
 from HW02 import *
 import core.classifiers as c
 knn = c.KNN(X_train, label_train)
+logit = c.Logit(X_train, label_train)
 bayes = c.Bayes(X_train, label_train)
 '''
 
@@ -26,12 +27,26 @@ label_train = pd.read_csv(path + '/mnist_csv/label_train.txt', header=None)
 Q = pd.read_csv(path + '/mnist_csv/Q.txt', header=None)
 
 def problem_3a():
-    KNN = classifiers.KNN(X_train, label_train, k=1)
-    for k in [1,2,3]:
-        KNN.k = k
-        KNN.classify_all(X_test)
+    knn = classifiers.KNN(X_train, label_train)
+    for k in [1,2,3,4,5]:
+        knn.k = k
+        knn.run_all(X_test, label_test)
         print 'Confusion matrix for k=', k
-        print KNN.get_confusion_matrix()
+        print knn.confusion_matrix
+        print 'Prediction accuracy for k=', k
+        print knn.prediction_accuracy()
+        print
+
+def problem_3b():
+    bayes = classifiers.bayes(X_train, label_train)
+    bayes.run_all(X_test, label_test)
+    print 'Confusion matrix for bayes:'
+    print bayes.confusion_matrix
+    print 'Prediction accuracy for bayes:'
+    print bayes.prediction_accuracy()
+    print
+
 
 if __name__ == '__main__':
     problem_3a()
+    problem_3b()

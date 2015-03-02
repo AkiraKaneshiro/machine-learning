@@ -11,6 +11,7 @@
 \usepackage{fancyhdr}
 \usepackage{color}
 \usepackage{url}
+\usepackage{bbm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \setlength{\textheight}{9in}
 \setlength{\topmargin}{-0.600in}
@@ -91,22 +92,22 @@ Part 1:
 \begin{enumerate}
 \item Write out the log likelihood $L$ of data $(x_1, y_1), . . . , (x_n, y_n)$ using an i.i.d. assumption.
 
-First, we observe that while $p(y|x, w_1, ..., w_n)$ is a product of the likelihood of each $w$, the indicator effectively cancels out every $w_i, i \neq k$ as $z^{1(y = k)} = z^0 = 1$.
+First, we observe that while $p(y|x, w_1, ..., w_n)$ is a product of the likelihood of each $w$, the indicator effectively cancels out every $w_i, i \neq c$ as $z^{\mathbbm{1}(y = c)} = z^0 = 1$, where $c$ is the .
 
 With that in mind, we can cast the joint probability of the data as:
 
 \[
-L = \prod_{i=1}^{n} (\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})^{1(y = i)}
+L = \prod_{i=1}^{n} (\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})^{\mathbbm{1}(y = i)}
 \]
 
 Taking the natural log of this, we have:
 
 \[
-lnL = \sum_{i=1}^{n} 1(y = i) ln(\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})
+lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) ln(\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})
 \]
 
 \[
-lnL = \sum_{i=1}^{n} 1(y = i) (x_i^Tw_i - ln{\sum_j^k e^{x_i^Tw_j}})
+lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) (x_i^Tw_i - ln{\sum_j^k e^{x_i^Tw_j}})
 \]
 
 \item Calculate $\nabla_{w_i} L$ and $\nabla^2_{w_i} L$.
@@ -114,18 +115,24 @@ lnL = \sum_{i=1}^{n} 1(y = i) (x_i^Tw_i - ln{\sum_j^k e^{x_i^Tw_j}})
 Beginning with the log likelihood:
 
 \[
-lnL = \sum_{i=1}^{n} 1(y = i) (x_i^Tw_i - ln{\sum_j^k e^{x_i^Tw_j}})
+lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) (x_i^Tw_i - ln{\sum_j^k e^{x_i^Tw_j}})
 \]
 
 \[
-lnL_{w_i}^\prime = \sum_{i=1}^{n} 1(y = i) (x_i - \frac{1}{\sum_j^k e^{x_i^Tw_j}} (e^{x_i^Tw_i}) x_i)
+\nabla_{w_i}lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) (x_i - \frac{1}{\sum_j^k e^{x_i^Tw_j}} (e^{x_i^Tw_i}) x_i)
 \]
 
 \[
-lnL_{w_i}^\prime = \sum_{i=1}^{n} 1(y = i)(x_1) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
+\nabla_{w_i}lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i)(x_i) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
+\]
+ALT:
+\[
+\nabla_{w_i}lnL = \sum_{i=1}^{n}(x_i) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
 \]
 
 The numerator $e^{x_i^Tw_i}$ makes sense because we take the gradient with respect to $w_i$. Therefore, the terms of the summation are 0 for every $w_j, w_j \neq w_i$.
+To interpret the gradient, we see how the greater the probability of $x_i$, the smaller $\nabla_{w_i}lnL$, or the less of an impact a change in $w_i$ will have on the likelihood.
+
 
 \end{enumerate}
 
@@ -175,40 +182,27 @@ There is a clear parallel to the Bayesian posterior mean: $\frac{\sum x_i + \alp
 
 
 
-\section*{Problem 3 (Linear regression)}
+\section*{Problem 3 (Classification)}
 
 Part 1
-\begin{enumerate}
-\item Print the numbers you obtain for the vector $\hat w_{ML}$. Using the labels of each dimension contained in the readme file, explain what the sign of each value in $\hat w_{ML}$ says about the relationship of the inputs to the output.
 
 \begin{table}[!th]
 \centering
 \begin{tabular}{|l|r|}
 \hline
-Dimension & Weight \\
+K &  Acc \\
 \hline
-Intercept & 23.42352482 \\
-Num Cylinders & -0.5759929  \\
-Displacement & 0.90318199 \\
-Horsepower & -0.12294213 \\
-Weight & -5.78808517 \\
-Acceleration & 0.21887044 \\
-Model Year & 2.77543049 \\
+1 & .948 \\
+2 & .93  \\
+3 & .918 \\
+4 & .902 \\
+5 & .894 \\
 \hline
 \end{tabular}
-\caption{$\hat w_{ML}$}
+\caption{Prediction accuracy for KNN}
 \label{ex:table}
 \end{table}
 
-First, we note that when all dimensions are at their (centered) average, the intercept (average) for MPG is ~23.42. Beyond that, the dimensions of Displacement, Acceleration, and Model Year are positively correlated with MPG, while Num Cylinders, Horsepower, and Weight, are negatively correlated.
-
-Of these, we see that Weight is the most strongly negatively correlated with MPG, which is sensible as increased weight directly translates into increased energy necessary to move the car, reducing MPG. Interestingly, Model Year has by far the strongest positive correlation with MPG, suggesting that secular fuel efficiency improvements year over year play a bigger role in improving MPG than any other single factor. 
-
-\item Use the least squares solution to predict the outputs for each of the 20 testing examples. Repeat this process of randomly splitting into training and testing sets 1000 times. Each time, calculate the mean absolute error of the resulting predictions, MAE = $\frac{1}{20} \sum_{i=1}^{20} \mid y_{test} - y_{pred} \mid$. What is the mean and standard deviation of the MAE for these 1000 tests?
-
-After running 1000 iterations, $\mu_{MAE} = 2.71242956285$, while $\sigma_{MAE} = 0.49817244422$
-
-\end{enumerate}
 
 Part 2
 \begin{enumerate}

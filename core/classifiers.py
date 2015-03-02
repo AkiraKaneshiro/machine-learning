@@ -27,6 +27,7 @@ class Classifier(object):
     def __init__(self, X_train, label_train):
         self.X_train = X_train
         self.label_train = label_train
+        self.classes = list(set(self.label_train[LABEL_COL]))
         self.predictions = None
         self.label_test = None
         self.confusion_matrix = None
@@ -41,7 +42,7 @@ class Classifier(object):
         # self.predictions = X.T.apply(self.classify)
         self.predictions = pd.Series(index=X.index)
         for i in X.index:
-            if not i % 10: print 'Predicting value for x_{}'.format(i)
+            if not i % 20: print 'Predicting value for x_{}'.format(i)
             self.predictions.ix[i] = self.classify(X.ix[i])
         return self.predictions
 
@@ -55,7 +56,7 @@ class Classifier(object):
             return
         assert len(label_test) == len(predictions), 'Test and prediction not aligned!'
             
-        classes = self.get_classes()
+        classes = self.classes
         cm = pd.DataFrame([classes for _ in classes], columns=classes) - classes
         for i in predictions.index:
             cm[predictions[i]][label_test[i]] += 1
@@ -68,32 +69,34 @@ class Classifier(object):
     def get_trace(self, matrix):
         return sum([matrix[i][i] for i in matrix.index])
 
-    def get_classes(self):
-        return list(set(self.label_train[LABEL_COL]))
+    def get_class_data(self, _class):
+        return self.X_train[self.get_class_index(_class)]
 
+    def get_class_index(self, _class):
+        return self.label_train[LABEL_COL] == _class
 
+    @property
+    def dimensions(self):
+        return self.X_train.iloc[0].index
 
 ######################
 ### KNN Classifier ###
 ######################
 class KNN(Classifier):
     def __init__(self, *args, **kwargs):
-        self.k = 3
         super(KNN, self).__init__(*args, **kwargs)
-
-    def set_k(self, k):
-        self.k = k
+        self.k = 3
 
     def classify(self, x):
         centered_X = self.X_train - x
-        distances = centered_X.T.apply(get_euclidean_norm)
+        # distances = centered_X.T.apply(get_euclidean_norm)
+        distances = (centered_X ** 2).T.sum().apply(math.sqrt)
         distances.sort()
         knn = distances.iloc[:self.k].index
         labels = self.label_train.ix[knn]
         counts = labels.groupby(LABEL_COL).count()
         counts.sort()
         return counts.index[0]
-
 
 ### Norms and distances
 def get_euclidean_distance(u, v):
@@ -132,11 +135,10 @@ class Bayes(Classifier):
         return pi * inv_det_cov * exp
 
     def generate_class_distributions(self):
-        classes = self.get_classes()
-        return {c: self.generate_class_distribution(c) for c in classes}
+        return {c: self.generate_class_distribution(c) for c in self.classes}
 
     def generate_class_distribution(self, _class):
-        train_class = self.X_train[self.label_train[LABEL_COL] == _class]
+        train_class = self.get_class_data(_class)
         return {
             'pi': self._get_pi_hat(_class),
             'mu': self._get_MLE_mean(train_class),
@@ -153,13 +155,97 @@ class Bayes(Classifier):
 
     def _get_MLE_cov(self, sample):
         mu = self._get_MLE_mean(sample)
-        n = len(sample.columns)
+        n = len(self.dimensions)
         cov = pd.DataFrame(np.zeros(n**2).reshape(n,n))
         for x in sample.index:
             error = pd.DataFrame(sample.ix[x] - mu)
             cov += (error.dot(error.T))
         cov /= len(sample)
         return cov
+
+#################################################
+### Multiclass Logistic Regression Classifier ###
+#################################################
+class Logit(Classifier):
+    def __init__(self, *args, **kwargs):
+        super(Logit, self).__init__(*args, **kwargs)
+        self.eta = 0.1 / 50000 # Step size
+        self.X_train['w0'] = 1 # Absorb w0 intercept
+        self.W = self.prepare_W()
+        self.log_likelihood_by_step = []
+
+    def prepare_W(self):
+        return pd.DataFrame({c: self.create_blank_w() for c in self.classes})
+
+    def create_blank_w(self):
+        return pd.Series(0, index=self.dimensions)
+
+    def update_W(self):
+        '''w_t -> w_t+1'''
+        for c in self.classes:
+            class_data = self.X_train[self.label_train[LABEL_COL] == c]
+            gradient_likelihood = self.get_gradient_likelihood(class_data, c)
+            self.W[c] += self.eta * gradient_likelihood
+
+    def get_gradient_likelihood(self, class_data, _class):
+        # Sum[x * (1 - (e**xTw / Sum[e**xTw)])]
+        xTw = class_data.dot(self.W)
+        softmax = self.softmax(xTw, _class)
+        gradient_likelihoods = class_data.mul((1 - softmax), axis=0)
+        return gradient_likelihoods.sum() 
+        
+    def softmax(self, xTw, _class):
+        beta = xTw.max(axis=1)
+        num = math.e ** (xTw[_class] - beta)
+        denom = (math.e ** (xTw.sub(beta, axis=0))).sum(axis=1)
+        return num / denom
+
+    def log_likelihood(self):
+        xTw = self.X_train.dot(self.W)
+        log_sums = xTw.sum(axis=1).apply(math.log)
+        ll = 0
+        for c in self.classes:
+            index = self.get_class_index(c)
+            lls = xTw[index][c].sub(log_sums[index], axis=0)
+            ll += lls.sum()
+        return ll
+
+    # def update_W(self):
+    #     '''w_t -> w_t+1'''
+    #     for c in self.classes:
+    #         print 'Updating w_{}'.format(c)
+    #         self.W[c] += self.eta * self.get_gradient_likelihood(c)
+    #     self.log_likelihood_by_step.append(self.log_likelihood())
+
+    # def get_gradient_likelihood(self, _class):
+    #     class_train = self.get_class_data(_class)
+    #     gradient_likelihood = self.create_blank_w()
+    #     for i in class_train.index:
+    #         x = class_train.ix[i]
+    #         gradient_likelihood += x * (1 - self.softmax(x, _class))
+    #     return gradient_likelihood
+
+    # def softmax(self, x, _class):
+    #     num = math.e ** (x.dot(self.W[_class]))
+    #     denom = self.total_probability(x)
+    #     return num / denom
+
+    # def total_probability(self, x):
+    #     return sum([math.e ** (x.dot(w)) for w in self.W.values()])      
+
+    # def log_likelihood(self):
+    #     likelihood = 0
+    #     for c in self.classes:
+    #         class_data = self.get_class_data(c)
+    #         for i in class_data.index:
+    #             likelihood += self._log_likelihood_for_x(class_data.ix[i], c)
+    #     return likelihood
+
+    # def _log_likelihood_for_x(self, x, _class):
+    #     return x.dot(self.W[_class]) - math.log(self.total_probability(x))
+
+
+
 
 
 
