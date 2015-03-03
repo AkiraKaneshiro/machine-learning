@@ -13,9 +13,11 @@ label: a specific assignment of a class to a data point.
 
 import math
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.linalg import sqrtm
+
 
 LABEL_COL = 0 # 0 is the name of the sole column in the labels dataframe
 
@@ -24,30 +26,34 @@ class Classifier(object):
     All children must implement a classify() method which takes in a single
     data point as a pd.Series and returns a class prediction.
     '''
-    def __init__(self, X_train, label_train):
+    def __init__(self, X_train, label_train, X_test, label_test, Q=None):
         self.X_train = X_train
         self.label_train = label_train
+        self.X_test = X_test
+        self.label_test = label_test
+        self.Q = Q
         self.classes = list(set(self.label_train[LABEL_COL]))
         self.predictions = None
-        self.label_test = None
         self.confusion_matrix = None
+        self.misclassifications = []
 
-    def run_all(self, X_test, label_test):
-        self.classify_all(X_test)
-        self.get_confusion_matrix(label_test)
+    def run_all(self):
+        self.classify_all()
+        print self.get_confusion_matrix()
         return self.prediction_accuracy()
 
-    def classify_all(self, X, get_cm=True):
-        '''Classify all data points in matrix X.'''
+    def classify_all(self, X_test=None):
+        '''Classify all data points in matrix X_test.'''
         # self.predictions = X.T.apply(self.classify)
-        self.predictions = pd.Series(index=X.index)
-        for i in X.index:
+        X_test = not X_test is None or self.X_test
+        self.predictions = pd.Series(index=X_test.index)
+        for i in X_test.index:
             if not i % 20: print 'Predicting value for x_{}'.format(i)
-            self.predictions.ix[i] = self.classify(X.ix[i])
+            self.predictions.ix[i] = self.classify(X_test.ix[i])
         return self.predictions
 
-    def get_confusion_matrix(self, label_test):
-        self.label_test = label_test
+    def get_confusion_matrix(self, label_test=None):
+        label_test = not label_test is None or self.label_test
         label_test = label_test[LABEL_COL]
         predictions = self.predictions
 
@@ -59,7 +65,12 @@ class Classifier(object):
         classes = self.classes
         cm = pd.DataFrame([classes for _ in classes], columns=classes) - classes
         for i in predictions.index:
-            cm[predictions[i]][label_test[i]] += 1
+            prediction = predictions[i]
+            label = label_test[i]
+            cm[prediction][label] += 1
+            if prediction != label:
+                m = {'i': i, 'label': label, 'prediction': prediction}
+                self.misclassifications.append(m)
         self.confusion_matrix = cm
         return cm
 
@@ -78,6 +89,11 @@ class Classifier(object):
     @property
     def dimensions(self):
         return self.X_train.iloc[0].index
+
+    def draw_image(self, x):
+        image = self.Q.dot(x).reshape(28, 28)
+        plt.imshow(image)
+
 
 ######################
 ### KNN Classifier ###
@@ -171,6 +187,7 @@ class Logit(Classifier):
         super(Logit, self).__init__(*args, **kwargs)
         self.eta = 0.1 / 50000 # Step size
         self.X_train['w0'] = 1 # Absorb w0 intercept
+        self.X_test['w0'] = 1 # Absorb w0 intercept
         self.W = self.prepare_W()
         self.log_likelihood_by_step = []
 
@@ -179,6 +196,12 @@ class Logit(Classifier):
 
     def create_blank_w(self):
         return pd.Series(0, index=self.dimensions)
+
+    def iterative_update(self, iterations=100):
+        for i in range(iterations):
+            if not i % 10: print 'Iteration {} of {}'.format(i, iterations)
+            self.update_W()
+            self.log_likelihood_by_step.append(self.log_likelihood())
 
     def update_W(self):
         '''w_t -> w_t+1'''
@@ -209,6 +232,18 @@ class Logit(Classifier):
             lls = XTW[cindex][c].sub(log_sums[cindex], axis=0)
             ll += lls.sum()
         return ll
+
+    def classify_all(self, X_test=None):
+        X_test = not X_test is None or self.X_test
+        self.predictions = pd.Series(index=X_test.index)
+        XTW = self.X_test.dot(self.W) # d x c matrix (5000 x 10)
+        sums = (math.e ** XTW).sum(axis=1)
+        class_odds = XTW.div(sums, axis=0)
+        for i in class_odds.index:
+            x_odds = class_odds.ix[i].copy()
+            x_odds.sort(ascending=False)
+            prediction = x_odds.index[0]
+            self.predictions[i] = prediction
 
     # def update_W(self):
     #     '''w_t -> w_t+1'''
@@ -243,27 +278,3 @@ class Logit(Classifier):
 
     # def _log_likelihood_for_x(self, x, _class):
     #     return x.dot(self.W[_class]) - math.log(self.total_probability(x))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

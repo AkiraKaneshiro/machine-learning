@@ -92,99 +92,188 @@ Part 1:
 \begin{enumerate}
 \item Write out the log likelihood $L$ of data $(x_1, y_1), . . . , (x_n, y_n)$ using an i.i.d. assumption.
 
-First, we observe that while $p(y|x, w_1, ..., w_n)$ is a product of the likelihood of each $w$, the indicator effectively cancels out every $w_i, i \neq c$ as $z^{\mathbbm{1}(y = c)} = z^0 = 1$, where $c$ is the .
+\[
+L = \prod_{i=1}^{n} \prod_{j=1}^{k} (\frac{e^{x_i^Tw_j}}{\sum_{l=1}^k e^{x_i^Tw_l}})^{\mathbbm{1}(y_i = j)}
+\]
+
+First, we observe that while $p(y|x, w_1, ..., w_n)$ is a product of the likelihood of each $w$, the indicator effectively cancels out every $w_i, i \neq c$ as $z^{\mathbbm{1}(y = c)} = z^0 = 1$, where $c$ is the true class of data point $x_i$. Furthermore, since we are only considering $x_i$ in the context of the correct class, we can eliminate the indicator function also.
 
 With that in mind, we can cast the joint probability of the data as:
 
 \[
-L = \prod_{i=1}^{n} (\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})^{\mathbbm{1}(y = i)}
+L = \prod_{i=1}^{n} (\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})
 \]
 
 Taking the natural log of this, we have:
 
 \[
-lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) ln(\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})
+\mathcal{L} = lnL = \sum_{i=1}^{n} ln(\frac{e^{x_i^Tw_i}}{\sum_{j=1}^k e^{x_i^Tw_j}})
 \]
 
 \[
-lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) (x_i^Tw_i - ln{\sum_j^k e^{x_i^Tw_j}})
+\mathcal{L} = \sum_{i=1}^{n} (x_i^Tw_i - ln({\sum_{j=1}^k e^{x_i^Tw_j}}))
 \]
 
-\item Calculate $\nabla_{w_i} L$ and $\nabla^2_{w_i} L$.
+\item Calculate $\nabla_{w_i} \mathcal{L}$ and $\nabla^2_{w_i} \mathcal{L}$.
+
+$\nabla_{w_i} \mathcal{L}$
 
 Beginning with the log likelihood:
 
 \[
-lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) (x_i^Tw_i - ln{\sum_j^k e^{x_i^Tw_j}})
+lnL = \sum_{i=1}^{n} (x_i^Tw_i - ln({\sum_{j=1}^k e^{x_i^Tw_j}}))
 \]
 
 \[
-\nabla_{w_i}lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i) (x_i - \frac{1}{\sum_j^k e^{x_i^Tw_j}} (e^{x_i^Tw_i}) x_i)
+\nabla_{w_i}\mathcal{L} = \sum_{i=1}^{n} (x_i - \frac{1}{\sum_j^k e^{x_i^Tw_j}} (e^{x_i^Tw_i}) x_i)
 \]
 
 \[
-\nabla_{w_i}lnL = \sum_{i=1}^{n} \mathbbm{1}(y = i)(x_i) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
-\]
-ALT:
-\[
-\nabla_{w_i}lnL = \sum_{i=1}^{n}(x_i) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
+\nabla_{w_i}\mathcal{L} = \sum_{i=1}^{n}(x_i) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
 \]
 
 The numerator $e^{x_i^Tw_i}$ makes sense because we take the gradient with respect to $w_i$. Therefore, the terms of the summation are 0 for every $w_j, w_j \neq w_i$.
 To interpret the gradient, we see how the greater the probability of $x_i$, the smaller $\nabla_{w_i}lnL$, or the less of an impact a change in $w_i$ will have on the likelihood.
 
+---
+
+$\nabla^2_{w_i} \mathcal{L}$
+
+To calculate the Hessian, we consider each term $\mathcal{L}_i$ separately, and calculate the second derivative for that term.
+
+This gives us:
+
+\[
+\nabla_{w_i} \mathcal{L}_i = \sum_{i=1}^{n}(x_i) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
+\]
+
+Using the quotient rule to take the derivative of the rightmost term:
+
+\[
+\nabla_{w_i} \mathcal{L}_i = \sum_{i=1}^{n}(x_i) (1 - \frac{x_i e^{x_i^Tw_i}\sum_j^k e^{x_i^Tw_j} - x_i e^{2x_i^Tw_i}}{(\sum_j^k e^{x_i^Tw_j})^2})
+\]
 
 \end{enumerate}
 
 \section*{Problem 2 (Gaussian kernels)}
 
-\begin{enumerate}
-\item Use Bayes rule to derive the posterior distribution of $\lambda$ and identify the name of this distribution.
-
-By Bayes rule, we know that:
-\[
-P(\lambda | x) = \frac{P(x | \lambda) P(\lambda)}{P(x)}
-\]
-
-Given that we are interested in $\lambda$, we can discard the denominator (which ultimately does not involve $\lambda$) and rewrite this equation as:
+To begin:
 
 \[
-P(\lambda | x) \propto P(x | \lambda) P(\lambda)
+K(u, v) = \int \phi_t(u) \phi_t(v) dt
 \]
 
-We can then expand the right side of the equation into the joint distribution of $P(x, \lambda)$:
+Expanding:
 
 \[
-P(\lambda | x) \propto  (\prod_{i=1}^{n} \frac{\lambda^{x_i}}{x!} e^{-\lambda}) \frac{\beta_1^{\alpha_1}}{\Gamma(\alpha_1)} \lambda^{\alpha_1 - 1} e^{-\beta_1 \lambda}
+K(u, v) = \int \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{({- \frac{||u - t||^2}{2\beta^\prime}})} \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{({- \frac{||v - t||^2}{2\beta^\prime}})} dt
 \]
+
+Rearranging:
+
 \[
-\propto  (\frac{\lambda^{\sum x_i}}{\prod x!} e^{-n\lambda}) \frac{\beta_1^{\alpha_1}}{\Gamma(\alpha_1)} \lambda^{\alpha_1 - 1} e^{-\beta_1 \lambda}
+K(u, v) = \frac{1}{(2\pi\beta^\prime)^{d/2}} \int \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{({- \frac{||u - t||^2 + ||v - t||^2}{2\beta^\prime}})} dt
 \]
+
+Focusing only on the terms in the exponent:
+
 \[
-\propto  \frac{\beta_1^{\alpha_1}}{\Gamma(\alpha_1) \prod x!} \lambda^{(\sum x_i + \alpha_1) - 1} e^{-\lambda (n + \beta_1)})
+||u - t||^2 + ||v - t||^2
 \]
 
-From this we have enough to learn the parameters of the posterior Gamma distribution: $\alpha_2 = \sum x_i + \alpha_1$ and $\beta_2 = n + \beta_1$. This result is still not the complete distribution, however: the fraction is not in the correct form for a Gamma, nor have we addressed the denominator which we dropped earlier. We know, however, that the final distribution must integrate to 1, which allows us to derive the correct values for the other terms (although we will not do so here).
+\[
+= u^Tu + t^Tt - 2u^Tt + v^Tv + t^Tt - 2v^Tt
+\]
 
-\item What is the mean and variance of $\lambda$ under this posterior? Discuss how this relates to your solution to Part 2 of Problem 1.
+\[
+= 2||t||^2 - 2(u + v)^Tt + ||u||^2 + ||v||^2
+\]
 
-The posterior $\lambda$ is $~Gamma(\sum x_i + \alpha_1, n + \beta_1)$
+\[
+= ||t||^2 - (u + v)^Tt + \frac{||u||^2}{2} + \frac{||v||^2}{2}
+\]
 
-As such, the mean of $\lambda = \frac{\alpha_2}{\beta_2} = \frac{\sum x_i + \alpha_1}{n + \beta_1}$.
+Then we complete the square:
 
-The variance is $\frac{\alpha_2}{\beta_2^2} = \frac{\sum x_i + \alpha_1}{(n + \beta_1)^2}$.
+\[
+= ||t||^2 - (u + v)^Tt + ||\frac{u+v}{2}||^2 -  ||\frac{u+v}{2}||^2 + \frac{||u||^2}{2} + \frac{||v||^2}{2}
+\]
 
-In 1.2, we saw that: $\frac{\sum x_i}{n} = \hat \lambda_{ML}$.
+\[
+= ||t - \frac{u + v}{2}||^2 - ||\frac{u+v}{2}||^2 + \frac{||u||^2}{2} + \frac{||v||^2}{2}
+\]
 
-There is a clear parallel to the Bayesian posterior mean: $\frac{\sum x_i + \alpha_1}{n + \beta_1} = E(\lambda)$, with the difference being the influence of the prior parameters $\alpha_1$ and $\beta_1$. This relationship represents the Bayesian insight by which our posterior distribution is determined by an interaction between our prior beliefs ($\alpha_1, \beta_1$) and our data ($\sum x_i, n$).
+Placing this back into context:
 
-\end{enumerate}
+\[
+K(u, v) = \frac{1}{(2\pi\beta^\prime)^{d/2}} \int \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{-\frac{1}{2\beta^\prime}(||t - \frac{u + v}{2}||^2 - ||\frac{u+v}{2}||^2 + \frac{||u||^2}{2} + \frac{||v||^2}{2})} dt
+\]
 
+Rearranging, we can form a Gaussian in $t$:
 
+\[
+K(u, v) = \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{-\frac{1}{2\beta^\prime}(- ||\frac{u+v}{2}||^2 + \frac{||u||^2}{2} + \frac{||v||^2}{2})} \int \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{-\frac{1}{2\beta^\prime}(||t - \frac{u + v}{2}||^2)} dt
+\]
+
+The term to be integrated is now a well-formed Gaussian in $t$. We can integrate this to 1, leaving us with:
+
+\[
+K(u, v) = \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{-\frac{1}{2\beta^\prime}(- ||\frac{u+v}{2}||^2 + \frac{||u||^2}{2} + \frac{||v||^2}{2})}
+\]
+
+Returning to the exponent, we have:
+
+\[
+- ||\frac{u+v}{2}||^2 + \frac{||u||^2}{2} + \frac{||v||^2}{2}
+\]
+
+\[
+\frac{||u||^2}{2} - ||\frac{u+v}{2}||^2  + \frac{||v||^2}{2}
+\]
+
+\[
+\frac{||u||^2}{2} - (\frac{u+v}{2})^T(\frac{u+v}{2})  + \frac{||v||^2}{2}
+\]
+
+\[
+\frac{||u||^2}{2} - \frac{(u+v)^T(u+v)}{4} + \frac{||v||^2}{2}
+\]
+
+\[
+\frac{||u||^2}{2} - \frac{||u||^2 + 2u^Tv + ||v||^2}{4}  + \frac{||v||^2}{2}
+\]
+
+\[
+\frac{2||u||^2 - ||u||^2 - 2u^Tv - ||v||^2 + 2||v||^2}{4}
+\]
+
+\[
+\frac{||u||^2 - 2u^Tv  + ||v||^2}{4}
+\]
+
+\[
+\frac{||u - v||^2}{4}
+\]
+
+Returning to context:
+
+\[
+K(u, v) = \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{-\frac{1}{2\beta^\prime}(\frac{||u - v||^2}{4})}
+\]
+
+\[
+K(u, v) = \frac{1}{(2\pi\beta^\prime)^{d/2}}e^{-(\frac{||u - v||^2}{8\beta^\prime})}
+\]
+
+Now, we define $\alpha = f_1(\beta^\prime)$ and $\beta = f_2(\beta^\prime)$, to achieve our desired result:
+
+\[
+K(u, v) = \alpha e^{-(\frac{||u - v||^2}{\beta})}
+\]
 
 \section*{Problem 3 (Classification)}
 
-Part 1
+Part A: KNN
 
 \begin{table}[!th]
 \centering
@@ -203,56 +292,219 @@ K &  Acc \\
 \label{ex:table}
 \end{table}
 
+Misclassified examples:
 
-Part 2
-\begin{enumerate}
-\item In a table, print the mean and standard deviation of the RMSE as a function of $p$. Using these numbers argue for which value of $p$ is the best.
+K = 1:
 
-As this table shows, setting $p$ = 3 gives both the lowest RMSE and the lowest variance for any value of $p$.
+Class: 3, Prediction: 8
+
+\includegraphics[scale=.3]{images/knn1_3_8.png}
+
+Class: 5, Prediction: 4
+
+\includegraphics[scale=.3]{images/knn1_5_4.png}
+
+Class: 8, Prediction: 9
+
+\includegraphics[scale=.3]{images/knn1_8_9.png}
+
+K = 3:
+
+Class: 3, Prediction: 7
+
+\includegraphics[scale=.3]{images/knn3_3_7.png}
+
+Class: 8, Prediction: 3
+
+\includegraphics[scale=.3]{images/knn3_8_3.png}
+
+Class: 9, Prediction: 4
+
+\includegraphics[scale=.3]{images/knn3_9_4.png}
+
+Class: 0, Prediction: 5
+
+K = 5:
+
+\includegraphics[scale=.3]{images/knn5_0_5.png}
+
+Class: 5, Prediction: 6
+
+\includegraphics[scale=.3]{images/knn5_5_6.png}
+
+Class: 7, Prediction: 2
+
+\includegraphics[scale=.3]{images/knn5_7_2.png}
+
+
+Part B: Bayes
 
 \begin{table}[!th]
 \centering
-\begin{tabular}{|l|c|r|}
+\begin{tabular}{|c|cccccccccc|}
 \hline
-$p$ & Mean & Std \\
+ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
 \hline
-1 & 3.44030468834 & 0.672995051589 \\
-2 & 2.75919186824 & 0.623061482354 \\
-3 & 2.64085582004 & 0.602524538829 \\
-4 & 2.73039848277 & 0.697498334382 \\
+0 & 48 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 0 & 0 \\
+1 & 0 & 49 & 0 & 0 & 0 & 0 & 0 & 0 & 1 & 0 \\
+2 & 0 & 0 & 48 & 0 & 1 & 0 & 1 & 0 & 0 & 0 \\
+3 & 0 & 0 & 1 & 47 & 0 & 0 & 0 & 0 & 2 & 0 \\
+4 & 0 & 0 & 0 & 0 & 48 & 0 & 0 & 0 & 1 & 1 \\ 
+5 & 0 & 0 & 0 & 1 & 0 & 45 & 2 & 0 & 1 & 1 \\
+6 & 0 & 0 & 0 & 0 & 1 & 5 & 43 & 0 & 0 & 1 \\ 
+7 & 0 & 0 & 2 & 0 & 2 & 0 & 0 & 46 & 0 & 0 \\
+8 & 0 & 0 & 1 & 0 & 0 & 1 & 0 & 0 & 47 & 1 \\
+9 & 1 & 0 & 0 & 0 & 2 & 0 & 0 & 0 & 0 & 47 \\
 \hline
 \end{tabular}
-\caption{RMSE by $p$}
+\caption{Confusion Matrix for Bayes Classifier}
 \label{ex:table}
 \end{table}
 
-\item For each value of $p$, collect $y_{test} - y_{pred}$ for each test example. (Observe that this number can be negative, and there are 20 x 1000 in total.) Plot a histogram of these errors for each $p$.
+Prediction accuracy: 0.93600000000000005
 
+Image means:
 
+\includegraphics[scale=.3]{images/bayes0.png}
 
-\item For each $p$, use maximum likelihood to fit a univariate Gaussian to the 20,000 errors from Part 2(b). Describe how you calculated the maximum likelihood values for the mean and variance (this is a univariate case of what we did in class, so no need to re-derive it). What is the log likelihood of these empirical errors using the maximum likelihood values for the mean and variance? Show this as a function of $p$ and discuss how this agrees/disagrees with your conclusion in Part 2(a). What assumptions are best satisfied by the optimal value of $p$ using this approach?
+\includegraphics[scale=.3]{images/bayes1.png}
 
-To fit the Gaussian, we calculated both $\hat \mu_{ML}$ and $\hat \sigma^2_{ML}$ using the standard maximum-likelihood estimators for these parameters: $\frac{1}{n} \sum_{i=1}^{n} x_i$ and $\frac{1}{n-1} \sum_{i=1}^{n} (x_i - \hat \mu_{ML})^2$.
+\includegraphics[scale=.3]{images/bayes2.png}
 
-Looking at this table, $p = 3$ again appears to create the strongest model. The variance (although not the mean) of the error is lowest with this model. Additionally, the log likelihood of this error is the greatest, although by a small margin, compared to all other models. This supports our conclusions in 2(a), where we identified $p = 3$ as being the strongest model.
+\includegraphics[scale=.3]{images/bayes3.png}
+
+\includegraphics[scale=.3]{images/bayes4.png}
+
+\includegraphics[scale=.3]{images/bayes5.png}
+
+\includegraphics[scale=.3]{images/bayes6.png}
+
+\includegraphics[scale=.3]{images/bayes7.png}
+
+\includegraphics[scale=.3]{images/bayes8.png}
+
+\includegraphics[scale=.3]{images/bayes9.png}
+
+Misclassified examples:
+
+X 84
+
+Class: 1
+
+Prediction: 8
+
+\includegraphics[scale=.3]{images/bayes_1_8.png}
 
 \begin{table}[!th]
 \centering
-\begin{tabular}{| l| c | c | r|}
+\begin{tabular}{|c|c|}
 \hline
-$p$ & Mean & Var & Log Likelihood \\
+Class & Likelihood \\
 \hline
-1 & 0.0163194355852 & 3.50549766331 & -53464.9206058 \\
-2 & -0.0285981551706 & 2.82852246649 & -49173.3602374 \\
-3 & 0.0409854631276 & 2.70840898169 & -48305.4980812 \\
-4 & 0.0593496182852 & 2.81743994052 & -49094.8436665 \\
+0 & 1.61427396527e-30 \\
+1 & 0.000190440181997 \\
+2 & 0.000184578956757 \\
+3 & 1.57209260318e-08 \\
+4 & 0.0013882095176 \\
+5 & 2.43343185745e-13 \\
+6 & 2.49257721585e-10 \\
+7 & 5.52356463049e-09 \\
+8 & 8.23010497024 \\
+9 & 4.24372709689e-12 \\
 \hline
 \end{tabular}
-\caption{Log Likelihood of error by $p$}
+\caption{Probability distributions}
 \label{ex:table}
 \end{table}
 
-\end{enumerate}
+X 189
 
+Class: 3
+
+Prediction: 2
+
+\includegraphics[scale=.3]{images/bayes_3_2.png}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Class & Likelihood \\
+\hline
+0 & 7.85200802045e-05 \\
+1 & 5.53960717342e-132 \\
+2 & 0.26868012579 \\
+3 & 0.207323802348 \\
+4 & 1.37871629701e-37 \\
+5 & 7.0913139412e-13 \\
+6 & 2.10121631612e-18 \\
+7 & 8.64158255829e-51 \\
+8 & 9.39609382955e-07 \\
+9 & 3.50286382359e-24 \\
+\hline
+\end{tabular}
+\caption{Probability distributions}
+\label{ex:table}
+\end{table}
+
+X 456
+
+Class: 9
+
+Prediction: 0
+
+\includegraphics[scale=.3]{images/bayes_9_0.png}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Class & Likelihood \\
+\hline
+0 & 1.01943498002e-09 \\
+1 & 0.0 \\
+2 & 4.77168981732e-13 \\
+3 & 1.84914477161e-37 \\
+4 & 2.09951907729e-33 \\
+5 & 2.61861276808e-50 \\
+6 & 3.49193403358e-23 \\
+7 & 2.28328889615e-105 \\
+8 & 3.81858520041e-39 \\
+9 & 5.89572887373e-43 \\
+\hline
+\end{tabular}
+\caption{Probability distributions}
+\label{ex:table}
+\end{table}
+
+Part C: Logistic Regression
+
+\includegraphics[scale=.8]{images/loglikelihood.png}
+
+Plot of log likelihood error by number of iterations.
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|cccccccccc|}
+\hline
+ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 \\
+\hline
+0 & 42 & 0 & 1 & 1 & 0 & 2 & 3 & 0 & 1 & 0 \\
+1 & 0 & 35 & 0 & 0 & 0 & 0 & 0 & 0 & 15 & 0 \\
+2 & 1 & 0 & 36 & 3 & 0 & 0 & 3 & 0 & 7 & 0 \\
+3 & 1 & 0 & 1 & 37 & 0 & 1 & 0 & 0 & 10 & 0 \\
+4 & 0 & 0 & 1 & 0 & 33 & 1 & 0 & 0 & 5 & 10 \\
+5 & 0 & 0 & 0 & 11 & 2 & 25 & 1 & 0 & 8 & 3 \\
+6 & 0 & 0 & 1 & 0 & 6 & 2 & 37 & 0 & 4 & 0 \\
+7 & 0 & 0 & 1 & 0 & 1 & 0 & 0 & 34 & 7 & 7 \\
+8 & 0 & 0 & 0 & 0 & 0 & 2 & 0 & 0 & 47 & 1 \\
+9 & 0 & 0 & 0 & 0 & 2 & 0 & 1 & 0 & 2 & 45 \\
+\hline
+\end{tabular}
+\caption{Confusion Matrix for Logistic Regression Classifier}
+\label{ex:table}
+\end{table}
+
+Prediction accuracy: 0.74199999999999999
 
 \end{document}
