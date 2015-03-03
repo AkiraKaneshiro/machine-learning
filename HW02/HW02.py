@@ -5,8 +5,8 @@
 '''
 from HW02 import *
 import core.classifiers as c
-knn = c.KNN(X_train, label_train)
 logit = c.Logit(X_train, label_train)
+knn = c.KNN(X_train, label_train)
 bayes = c.Bayes(X_train, label_train)
 '''
 

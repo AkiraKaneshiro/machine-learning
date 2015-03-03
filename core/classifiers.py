@@ -201,12 +201,12 @@ class Logit(Classifier):
         return num / denom
 
     def log_likelihood(self):
-        xTw = self.X_train.dot(self.W)
-        log_sums = xTw.sum(axis=1).apply(math.log)
+        XTW = self.X_train.dot(self.W) # d x c matrix (5000 x 10)
+        log_sums = (math.e ** XTW).sum(axis=1).apply(math.log)
         ll = 0
         for c in self.classes:
-            index = self.get_class_index(c)
-            lls = xTw[index][c].sub(log_sums[index], axis=0)
+            cindex = self.get_class_index(c)
+            lls = XTW[cindex][c].sub(log_sums[cindex], axis=0)
             ll += lls.sum()
         return ll
 
