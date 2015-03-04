@@ -18,8 +18,6 @@ from core import classifiers
 
 path = os.path.dirname(os.path.realpath(__file__))
 
-# random.seed('codex seraphinianus')
-
 X_test = pd.read_csv(path + '/mnist_csv/Xtest.txt', header=None)
 label_test = pd.read_csv(path + '/mnist_csv/label_test.txt', header=None)
 X_train = pd.read_csv(path + '/mnist_csv/Xtrain.txt', header=None)
@@ -50,7 +48,7 @@ def problem_3b():
 
 def problem_3c():
     logit = classifiers.Logit(X_train, label_train, X_test, label_test, Q)
-    logit.iterative_update()
+    logit.iterative_update(1000)
     logit.run_all()
     print 'Confusion matrix for logistic regression:'
     print logit.confusion_matrix

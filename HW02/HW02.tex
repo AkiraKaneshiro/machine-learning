@@ -88,7 +88,6 @@
 
 \section*{Problem 1 (multiclass logistic regression)}
 
-Part 1:
 \begin{enumerate}
 \item Write out the log likelihood $L$ of data $(x_1, y_1), . . . , (x_n, y_n)$ using an i.i.d. assumption.
 
@@ -116,7 +115,7 @@ Taking the natural log of this, we have:
 
 \item Calculate $\nabla_{w_i} \mathcal{L}$ and $\nabla^2_{w_i} \mathcal{L}$.
 
-$\nabla_{w_i} \mathcal{L}$
+\section*{$\nabla_{w_i} \mathcal{L}$}
 
 Beginning with the log likelihood:
 
@@ -135,22 +134,36 @@ lnL = \sum_{i=1}^{n} (x_i^Tw_i - ln({\sum_{j=1}^k e^{x_i^Tw_j}}))
 The numerator $e^{x_i^Tw_i}$ makes sense because we take the gradient with respect to $w_i$. Therefore, the terms of the summation are 0 for every $w_j, w_j \neq w_i$.
 To interpret the gradient, we see how the greater the probability of $x_i$, the smaller $\nabla_{w_i}lnL$, or the less of an impact a change in $w_i$ will have on the likelihood.
 
----
+\section*{$\nabla^2_{w_i} \mathcal{L}$}
 
-$\nabla^2_{w_i} \mathcal{L}$
-
-To calculate the Hessian, we consider each term $\mathcal{L}_i$ separately, and calculate the second derivative for that term.
+To calculate the Hessian, we consider each term $\mathcal{L}_l$ separately, and calculate the second derivative for that term.
 
 This gives us:
 
 \[
-\nabla_{w_i} \mathcal{L}_i = \sum_{i=1}^{n}(x_i) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
+\nabla_{w_i} \mathcal{L}_l = \sum_{i=1}^{n}(x_{il}) (1 - \frac{e^{x_i^Tw_i}}{\sum_j^k e^{x_i^Tw_j}})
 \]
 
 Using the quotient rule to take the derivative of the rightmost term:
 
 \[
-\nabla_{w_i} \mathcal{L}_i = \sum_{i=1}^{n}(x_i) (1 - \frac{x_i e^{x_i^Tw_i}\sum_j^k e^{x_i^Tw_j} - x_i e^{2x_i^Tw_i}}{(\sum_j^k e^{x_i^Tw_j})^2})
+\nabla_{w_i}^2 \mathcal{L}_l = \sum_{i=1}^{n}(x_{il}) (1 - \frac{x_i e^{x_i^Tw_i}\sum_j^k e^{x_i^Tw_j} - x_i e^{2x_i^Tw_i}}{(\sum_j^k e^{x_i^Tw_j})^2})
+\]
+
+\[
+\nabla_{w_i}^2 \mathcal{L}_l = \sum_{i=1}^{n}(x_{il}) (1 - \frac{x_i (e^{x_i^Tw_i}\sum_j^k e^{x_i^Tw_j} - e^{2x_i^Tw_i})}{(\sum_j^k e^{x_i^Tw_j})^2})
+\]
+
+If we set $c = e^{x_i^Tw_i}\sum_j^k e^{x_i^Tw_j} - e^{2x_i^Tw_i}$ and $d = (\sum_j^k e^{x_i^Tw_j})^2$, both scalars, we have:
+
+\[
+\nabla_{w_i}^2 \mathcal{L}_l = \sum_{i=1}^{n}(x_{il}) (1 - \frac{x_i c}{e})
+\]
+
+As $x_{il}$ is also a scalar (element $l$ of gradient vector $ \mathcal{L}$), and $x_i$ is a vector, this expression evaluates to a vector. Thus, evaluating this expression for every $\mathcal{L}_l$ in $(1, 2, ... d)$ where $d$ is the number of elements (dimensions) in  $\mathcal{L}$, (and summing across every $x_i$ in $X$), we generate the Hessian matrix:
+
+\[
+\nabla_{w_i}^2 \mathcal{L} = [\nabla_{w_i}^2 \mathcal{L}_1, \nabla_{w_i}^2 \mathcal{L}_2, ..., \nabla_{w_i}^2 \mathcal{L}_d]^T
 \]
 
 \end{enumerate}
@@ -273,8 +286,6 @@ K(u, v) = \alpha e^{-(\frac{||u - v||^2}{\beta})}
 
 \section*{Problem 3 (Classification)}
 
-Part A: KNN
-
 \begin{table}[!th]
 \centering
 \begin{tabular}{|l|r|}
@@ -292,52 +303,56 @@ K &  Acc \\
 \label{ex:table}
 \end{table}
 
-Misclassified examples:
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Class & Prediction & Image \\
+\hline
+3 & 8 & \includegraphics[scale=.15]{images/knn1_3_8.png} \\
+\hline
+5 & 4 & \includegraphics[scale=.15]{images/knn1_5_4.png} \\
+\hline
+8 & 9 & \includegraphics[scale=.15]{images/knn1_8_9.png} \\
+\hline
+\end{tabular}
+\caption{Misclassified examples for K=1}
+\label{ex:table}
+\end{table}
 
-K = 1:
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Class & Prediction & Image \\
+\hline
+3 & 7 & \includegraphics[scale=.15]{images/knn3_3_7.png} \\
+\hline
+8 & 3 & \includegraphics[scale=.15]{images/knn3_8_3.png} \\
+\hline
+9 & 4 & \includegraphics[scale=.15]{images/knn3_9_4.png} \\
+\hline
+\end{tabular}
+\caption{Misclassified examples for K=3}
+\label{ex:table}
+\end{table}
 
-Class: 3, Prediction: 8
-
-\includegraphics[scale=.3]{images/knn1_3_8.png}
-
-Class: 5, Prediction: 4
-
-\includegraphics[scale=.3]{images/knn1_5_4.png}
-
-Class: 8, Prediction: 9
-
-\includegraphics[scale=.3]{images/knn1_8_9.png}
-
-K = 3:
-
-Class: 3, Prediction: 7
-
-\includegraphics[scale=.3]{images/knn3_3_7.png}
-
-Class: 8, Prediction: 3
-
-\includegraphics[scale=.3]{images/knn3_8_3.png}
-
-Class: 9, Prediction: 4
-
-\includegraphics[scale=.3]{images/knn3_9_4.png}
-
-Class: 0, Prediction: 5
-
-K = 5:
-
-\includegraphics[scale=.3]{images/knn5_0_5.png}
-
-Class: 5, Prediction: 6
-
-\includegraphics[scale=.3]{images/knn5_5_6.png}
-
-Class: 7, Prediction: 2
-
-\includegraphics[scale=.3]{images/knn5_7_2.png}
-
-
-Part B: Bayes
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|c|}
+\hline
+Class & Prediction & Image \\
+\hline
+0 & 5 & \includegraphics[scale=.15]{images/knn5_0_5.png} \\
+\hline
+5 & 6 & \includegraphics[scale=.15]{images/knn5_5_6.png} \\
+\hline
+7 & 2 & \includegraphics[scale=.15]{images/knn5_7_2.png} \\
+\hline
+\end{tabular}
+\caption{Misclassified examples for K=5}
+\label{ex:table}
+\end{table}
 
 \begin{table}[!th]
 \centering
@@ -357,43 +372,45 @@ Part B: Bayes
 9 & 1 & 0 & 0 & 0 & 2 & 0 & 0 & 0 & 0 & 47 \\
 \hline
 \end{tabular}
-\caption{Confusion Matrix for Bayes Classifier}
+\caption{Confusion Matrix for Bayes Classifier (Prediction accuracy = .936)}
 \label{ex:table}
 \end{table}
 
-Prediction accuracy: 0.93600000000000005
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\includegraphics[scale=.15]{images/bayes0.png} & \includegraphics[scale=.15]{images/bayes1.png} \\
+\hline
+\includegraphics[scale=.15]{images/bayes2.png} & \includegraphics[scale=.15]{images/bayes3.png} \\
+\hline
+\includegraphics[scale=.15]{images/bayes4.png} & \includegraphics[scale=.15]{images/bayes5.png} \\
+\hline
+\includegraphics[scale=.15]{images/bayes6.png} & \includegraphics[scale=.15]{images/bayes7.png} \\
+\hline
+\includegraphics[scale=.15]{images/bayes8.png} & \includegraphics[scale=.15]{images/bayes9.png} \\
+\hline
+\end{tabular}
+\caption{Image means for Bayes classifier}
+\label{ex:table}
+\end{table}
 
-Image means:
-
-\includegraphics[scale=.3]{images/bayes0.png}
-
-\includegraphics[scale=.3]{images/bayes1.png}
-
-\includegraphics[scale=.3]{images/bayes2.png}
-
-\includegraphics[scale=.3]{images/bayes3.png}
-
-\includegraphics[scale=.3]{images/bayes4.png}
-
-\includegraphics[scale=.3]{images/bayes5.png}
-
-\includegraphics[scale=.3]{images/bayes6.png}
-
-\includegraphics[scale=.3]{images/bayes7.png}
-
-\includegraphics[scale=.3]{images/bayes8.png}
-
-\includegraphics[scale=.3]{images/bayes9.png}
-
-Misclassified examples:
-
-X 84
-
-Class: 1
-
-Prediction: 8
-
-\includegraphics[scale=.3]{images/bayes_1_8.png}
+\begin{table}[!th]
+\centering
+\begin{tabular}{|clc|c||c|}
+\hline
+i & Class & Prediction & Image \\
+\hline
+84 & 1 & 8 & \includegraphics[scale=.2]{images/bayes_1_8.png} \\
+\hline
+189 & 3 & 2 & \includegraphics[scale=.2]{images/bayes_3_2.png} \\
+\hline
+456 & 9 & 0 & \includegraphics[scale=.2]{images/bayes_9_0.png} \\
+\hline
+\end{tabular}
+\caption{Misclassified examples with Bayesian classifier}
+\label{ex:table}
+\end{table}
 
 \begin{table}[!th]
 \centering
@@ -413,17 +430,9 @@ Class & Likelihood \\
 9 & 4.24372709689e-12 \\
 \hline
 \end{tabular}
-\caption{Probability distributions}
+\caption{Probability distributions for i=84}
 \label{ex:table}
 \end{table}
-
-X 189
-
-Class: 3
-
-Prediction: 2
-
-\includegraphics[scale=.3]{images/bayes_3_2.png}
 
 \begin{table}[!th]
 \centering
@@ -443,17 +452,9 @@ Class & Likelihood \\
 9 & 3.50286382359e-24 \\
 \hline
 \end{tabular}
-\caption{Probability distributions}
+\caption{Probability distributions for i=189}
 \label{ex:table}
 \end{table}
-
-X 456
-
-Class: 9
-
-Prediction: 0
-
-\includegraphics[scale=.3]{images/bayes_9_0.png}
 
 \begin{table}[!th]
 \centering
@@ -473,15 +474,15 @@ Class & Likelihood \\
 9 & 5.89572887373e-43 \\
 \hline
 \end{tabular}
-\caption{Probability distributions}
+\caption{Probability distributions for i=456}
 \label{ex:table}
 \end{table}
 
-Part C: Logistic Regression
+\begin{figure}[h]
+\centerline{\includegraphics[scale=.6]{images/loglikelihood.png}}
 
-\includegraphics[scale=.8]{images/loglikelihood.png}
-
-Plot of log likelihood error by number of iterations.
+\centerline{Plot of log likelihood error by number of iterations for Logistic Regression classifier.}
+\end{figure}
 
 \begin{table}[!th]
 \centering
@@ -501,10 +502,92 @@ Plot of log likelihood error by number of iterations.
 9 & 0 & 0 & 0 & 0 & 2 & 0 & 1 & 0 & 2 & 45 \\
 \hline
 \end{tabular}
-\caption{Confusion Matrix for Logistic Regression Classifier}
+\caption{Confusion Matrix for Logistic Regression (Prediction accuracy = 0.7419)}
 \label{ex:table}
 \end{table}
 
-Prediction accuracy: 0.74199999999999999
+\begin{table}[!th]
+\centering
+\begin{tabular}{|clc|c||c|}
+\hline
+i & Class & Prediction & Image \\
+\hline
+275 & 5 & 3 & \includegraphics[scale=.2]{images/logit_5_3.png} \\
+\hline
+373 & 7 & 9 & \includegraphics[scale=.2]{images/logit_7_9.png} \\
+\hline
+477 & 9 & 8 & \includegraphics[scale=.2]{images/logit_9_8.png} \\
+\hline
+\end{tabular}
+\caption{Misclassified examples with Logistic Regression classifier}
+\label{ex:table}
+\end{table}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Class & Likelihood \\
+\hline
+0 & 0.056978 \\
+1 & 0.005312 \\
+2 & 0.054814 \\
+3 & 0.279018 \\
+4 & 0.054411 \\
+5 & 0.170424 \\
+6 & 0.064826 \\
+7 & 0.024758 \\
+8 & 0.178350 \\
+9 & 0.111109 \\
+\hline
+\end{tabular}
+\caption{Softmax probability distributions for i=275}
+\label{ex:table}
+\end{table}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Class & Likelihood \\
+\hline
+0 & 0.011427 \\
+1 & 0.004381 \\
+2 & 0.043161 \\
+3 & 0.096474 \\
+4 & 0.061084 \\
+5 & 0.061646 \\
+6 & 0.017383 \\
+7 & 0.309109 \\
+8 & 0.081986 \\
+9 & 0.313349 \\
+\hline
+\end{tabular}
+\caption{Softmax probability distributions for i=373}
+\label{ex:table}
+\end{table}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Class & Likelihood \\
+\hline
+0 & 0.009955 \\
+1 & 0.128215 \\
+2 & 0.039013 \\
+3 & 0.112215 \\
+4 & 0.039321 \\
+5 & 0.150457 \\
+6 & 0.037912 \\
+7 & 0.068410 \\
+8 & 0.256989 \\
+9 & 0.157514 \\
+\hline
+\end{tabular}
+\caption{Softmax probability distributions for i=477}
+\label{ex:table}
+\end{table}
+
 
 \end{document}

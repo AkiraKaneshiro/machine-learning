@@ -245,6 +245,12 @@ class Logit(Classifier):
             prediction = x_odds.index[0]
             self.predictions[i] = prediction
 
+    def softmax_probabilities(self, x):
+        xTW = x.dot(self.W)
+        probabilities = (math.e ** x.dot(self.W)) / (math.e ** xTW).sum()
+        assert probabilities.sum() - 1 < 0.00001
+        return probabilities
+
     # def update_W(self):
     #     '''w_t -> w_t+1'''
     #     for c in self.classes:
