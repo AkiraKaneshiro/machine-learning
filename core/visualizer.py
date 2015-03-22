@@ -16,12 +16,15 @@ import matplotlib.pyplot as plt
 
 def plot_params_hist(data_dict):
     colors = ['green', 'blue', 'red', 'orange', 'yellow', 'purple']
-    root_num_axes = math.ceil(math.sqrt(len(data_dict)))
+    root_num_axes = int(math.ceil(math.sqrt(len(data_dict))))
     fig, axes = plt.subplots(root_num_axes, root_num_axes)
-    for i, param in enumerate(data_dict):
+    keys = data_dict.keys()
+    keys.sort()
+    for i, param in enumerate(keys):
         plot = axes[i / root_num_axes][i % root_num_axes]
-        data = data_dict[param].values
-        plot.hist(data, bins=50, label='param={}'.format(param), color=colors[i])
+        data = data_dict[param]#.values
+        color = colors[i % len(colors)]
+        plot.hist(data, bins=50, label='param={}'.format(param), color=color)
         plot.legend(loc='best')
     plt.show()
 
