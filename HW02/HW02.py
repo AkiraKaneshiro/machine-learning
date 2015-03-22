@@ -37,7 +37,7 @@ def problem_3a():
     return knn
 
 def problem_3b():
-    bayes = classifiers.bayes(X_train, label_train, X_test, label_test)
+    bayes = classifiers.MultiClassBayes(X_train, label_train, X_test, label_test)
     bayes.run_all()
     print 'Confusion matrix for bayes:'
     print bayes.confusion_matrix

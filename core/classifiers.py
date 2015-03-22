@@ -26,7 +26,7 @@ class Classifier(object):
     All children must implement a classify() method which takes in a single
     data point as a pd.Series and returns a class prediction.
     '''
-    def __init__(self, X_train, label_train, X_test, label_test, Q=None):
+    def __init__(self, X_train, label_train, X_test=None, label_test=None, Q=None):
         self.X_train = X_train
         self.label_train = label_train
         self.X_test = X_test
@@ -53,7 +53,7 @@ class Classifier(object):
         return self.predictions
 
     def get_confusion_matrix(self, label_test=None):
-        label_test = not label_test is None or self.label_test
+        label_test = label_test if any(label_test) else self.label_test
         label_test = label_test[LABEL_COL]
         predictions = self.predictions
 
@@ -86,9 +86,9 @@ class Classifier(object):
     def get_class_index(self, _class):
         return self.label_train[LABEL_COL] == _class
 
-    @property
-    def dimensions(self):
-        return self.X_train.iloc[0].index
+    def dimensions(self, sample=None):
+        sample = sample if any(sample) else self.X_train
+        return sample.iloc[0].index
 
     def draw_image(self, x):
         image = self.Q.dot(x).reshape(28, 28)
@@ -133,6 +133,29 @@ def get_euclidean_norm(u):
 class Bayes(Classifier):
     def __init__(self, *args, **kwargs):
         super(Bayes, self).__init__(*args, **kwargs)
+
+    def _get_pi_hat(self, c):
+        labels = self.label_train
+        pi_hat = labels[labels[LABEL_COL] == c].count()[0] / float(len(labels))
+        return pi_hat
+
+    def _get_MLE_mean(self, sample):
+        return sample.mean()
+
+    def _get_MLE_cov(self, sample):
+        mu = self._get_MLE_mean(sample)
+        dim = self.dimensions(sample)
+        n = len(dim)
+        cov = pd.DataFrame(np.zeros(n**2).reshape(n,n), index=dim, columns=dim) 
+        for x in sample.index:
+            error = pd.DataFrame(sample.ix[x] - mu)
+            cov += (error.dot(error.T))
+        cov /= len(sample)
+        return cov
+
+class MultiClassBayes(Bayes):
+    def __init__(self, *args, **kwargs):
+        super(MultiClassBayes, self).__init__(*args, **kwargs)
         self.class_distributions = self.generate_class_distributions()
 
     def classify(self, x):
@@ -161,23 +184,36 @@ class Bayes(Classifier):
             'Sigma': self._get_MLE_cov(train_class),
         }
 
-    def _get_pi_hat(self, c):
-        labels = self.label_train
-        pi_hat = labels[labels[LABEL_COL] == c].count()[0] / float(len(labels))
-        return pi_hat
 
-    def _get_MLE_mean(self, sample):
-        return sample.mean()
+class BinaryBayes(Bayes):
+    def __init__(self, *args, **kwargs):
+        super(BinaryBayes, self).__init__(*args, **kwargs)
+        self.w, self.w_0 = self.generate_w_vectors()
 
-    def _get_MLE_cov(self, sample):
-        mu = self._get_MLE_mean(sample)
-        n = len(self.dimensions)
-        cov = pd.DataFrame(np.zeros(n**2).reshape(n,n))
-        for x in sample.index:
-            error = pd.DataFrame(sample.ix[x] - mu)
-            cov += (error.dot(error.T))
-        cov /= len(sample)
-        return cov
+    def generate_w_vectors(self):
+        k1 = self.get_class_data(1).drop(0, axis=1)
+        k0 = self.get_class_data(-1).drop(0, axis=1)
+
+        pi_k1 = self._get_pi_hat(1)
+        pi_k0 = self._get_pi_hat(-1)
+        mu_k1 = self._get_MLE_mean(k1)
+        mu_k0 = self._get_MLE_mean(k0)
+        Sigma = self._get_MLE_cov(k1.append(k0))
+
+        w = self.calculate_w(mu_k0, mu_k1, Sigma)
+        w0 = self.calculate_w0(pi_k0, pi_k1, mu_k0, mu_k1, Sigma)
+        return w, w0
+
+    def calculate_w(self, mu_0, mu_1, Sigma):
+        return np.linalg.inv(Sigma).T.dot(mu_1 - mu_0)
+
+    def calculate_w0(self, pi_0, pi_1, mu_0, mu_1, Sigma):
+        return (np.log(pi_1 / pi_0)
+                + (0.5*((mu_1 + mu_0).T.dot(Sigma).dot(mu_1 - mu_0))))
+
+
+
+
 
 #################################################
 ### Multiclass Logistic Regression Classifier ###
@@ -195,7 +231,7 @@ class Logit(Classifier):
         return pd.DataFrame({c: self.create_blank_w() for c in self.classes})
 
     def create_blank_w(self):
-        return pd.Series(0, index=self.dimensions)
+        return pd.Series(0, index=self.dimensions())
 
     def iterative_update(self, iterations=100):
         for i in range(iterations):

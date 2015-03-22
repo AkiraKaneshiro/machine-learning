@@ -3,8 +3,9 @@
 ### March 31, 2015
 
 '''
-from HW03 import *
+from HW03.HW03 import *
 import core.classifiers as c
+bayes = c.BinaryBayes(X, y)
 '''
 
 import os
@@ -27,6 +28,9 @@ def part1():
     bootstrapper = ensemble.Bootstrapper()
     samples = {n: bootstrapper.sample_discrete(dist, n) for n in n_values}
     visualizer.plot_params_hist(samples)
+
+def part2():
+    pass
 
 if __name__ == '__main__':
     part1()
