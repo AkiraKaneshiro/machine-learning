@@ -188,9 +188,9 @@ class MultiClassBayes(Bayes):
 class BinaryBayes(Bayes):
     def __init__(self, *args, **kwargs):
         super(BinaryBayes, self).__init__(*args, **kwargs)
-        self.w, self.w_0 = self.generate_w_vectors()
+        self.w = self.generate_w_vectors(combine=True)
 
-    def generate_w_vectors(self):
+    def generate_w_vectors(self, combine=False):
         k1 = self.get_class_data(1).drop(0, axis=1)
         k0 = self.get_class_data(-1).drop(0, axis=1)
 
@@ -202,14 +202,22 @@ class BinaryBayes(Bayes):
 
         w = self.calculate_w(mu_k0, mu_k1, Sigma)
         w0 = self.calculate_w0(pi_k0, pi_k1, mu_k0, mu_k1, Sigma)
-        return w, w0
+
+        if combine:
+            return pd.Series(np.insert(w, 0, w0))
+        else:
+            return w, w0
 
     def calculate_w(self, mu_0, mu_1, Sigma):
-        return np.linalg.inv(Sigma).T.dot(mu_1 - mu_0)
+        return np.linalg.inv(Sigma).dot(mu_1 - mu_0)
 
     def calculate_w0(self, pi_0, pi_1, mu_0, mu_1, Sigma):
         return (np.log(pi_1 / pi_0)
-                + (0.5*((mu_1 + mu_0).T.dot(Sigma).dot(mu_1 - mu_0))))
+                - (0.5 * ((mu_1 + mu_0).T.dot(np.linalg.inv(Sigma)).dot(mu_1 - mu_0))))
+
+    def classify(self, x):
+        fx = x.dot(self.w)
+        return 1 if fx >= 0 else -1
 
 
 
