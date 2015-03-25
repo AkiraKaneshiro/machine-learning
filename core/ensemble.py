@@ -13,11 +13,10 @@ random.seed('Gilgamesh')
 
 # import matplotlib.pyplot as plt
 # import numpy as np
-# import pandas as pd
+import pandas as pd
 
 
 class Bootstrapper(object):
-
     def sample_discrete(self, w, n):
         '''Sample discrete RVs with probability distribution w'''
         assert abs(w.sum() - 1) < 0.000001, 'Weights do not sum to 1!'
@@ -31,4 +30,22 @@ class Bootstrapper(object):
         B_index = self.sample_discrete(w, n)
         B = X.ix[B_index]
         return B
+
+class AdaBoost(Bootstrapper):
+    def __init__(self, X, y, classifier=None):
+        self.X = X
+        self.y = y
+        self.w = pd.Series(np.ones(len(X))) / len(X)
+        self.classifier = classifier
+
+    def iterate(self, w):
+        B_t = self.bootstrap_sample(self.X, w)
+        c = self.classifier(B_t, self.y)
+        return c.classify_all(self.X)
+
+    def get_epsilon(self):
+        pass
+
+
+
 

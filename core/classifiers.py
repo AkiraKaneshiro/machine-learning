@@ -328,3 +328,33 @@ class Logit(Classifier):
 
     # def _log_likelihood_for_x(self, x, _class):
     #     return x.dot(self.W[_class]) - math.log(self.total_probability(x))
+
+#########################################
+### Online Binary Logistic Regression ###
+#########################################
+class Logit(Classifier):
+    def __init__(self, *args, **kwargs):
+        super(Logit, self).__init__(*args, **kwargs)
+        self.eta = 0.1
+        self.w = self.prepare_w()
+        self.log_likelihood_by_step = []
+
+    def prepare_w(self):
+        return pd.Series(0, index=self.dimensions())
+
+    def sigma(self, x, y):
+        return 1 / (1 + (math.e ** -(y * x.dot(self.w))))
+
+    def update_w(self, i):
+        x, y = self.X.ix[i], self.y.ix[i]
+        self.w = self.w + (self.eta * self.sigma(x, y) * (y*x))
+
+    def run(self):
+        for i in self.X.index:
+            self.update_w(i)
+
+
+
+
+
+
