@@ -13,9 +13,9 @@ import math
 
 import matplotlib.pyplot as plt
 
+COLORS = ['green', 'blue', 'red', 'orange', 'yellow', 'purple']
 
 def plot_params_hist(data_dict):
-    colors = ['green', 'blue', 'red', 'orange', 'yellow', 'purple']
     root_num_axes = int(math.ceil(math.sqrt(len(data_dict))))
     fig, axes = plt.subplots(root_num_axes, root_num_axes)
     keys = data_dict.keys()
@@ -23,7 +23,7 @@ def plot_params_hist(data_dict):
     for i, param in enumerate(keys):
         plot = axes[i / root_num_axes][i % root_num_axes]
         data = data_dict[param]#.values
-        color = colors[i % len(colors)]
+        color = COLORS[i % len(COLORS)]
         plot.hist(data, bins=50, label='param={}'.format(param), color=color)
         plot.legend(loc='best')
     plt.show()
@@ -45,3 +45,10 @@ def print_func_by_param(data_dict, f, label):
         data = data_dict[param]
         print param, '\t', data.mean(), '\t', data.std()**2, '\t', f(data)
     print
+
+def compare_series(series_dict):
+    for k in series_dict:
+        plt.plot(series_dict[k], label=k)
+    plt.legend(loc='best')
+    plt.show()
+

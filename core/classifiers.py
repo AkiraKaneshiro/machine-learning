@@ -12,6 +12,8 @@ label: a specific assignment of a class to a data point.
 '''
 
 import math
+import random
+random.seed('Abracadabra')
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,14 +30,17 @@ class Classifier(object):
     '''
     def __init__(self, X_train, label_train, X_test=None, label_test=None, Q=None):
         self.X_train = X_train
-        self.label_train = label_train
-        self.X_test = X_test
-        self.label_test = label_test
+        self.label_train = self.to_series(label_train)
+        self.X_test = X_test if X_test is not None else X_train
+        self.label_test = self.to_series(label_test if label_test is not None else label_train)
         self.Q = Q
-        self.classes = list(set(self.label_train[LABEL_COL]))
+        self.classes = list(set(self.label_train))
         self.predictions = None
         self.confusion_matrix = None
         self.misclassifications = []
+
+    def to_series(self, obj):
+        return obj[0] if isinstance(obj, pd.DataFrame) else obj
 
     def run_all(self):
         self.classify_all()
@@ -45,16 +50,15 @@ class Classifier(object):
     def classify_all(self, X_test=None):
         '''Classify all data points in matrix X_test.'''
         # self.predictions = X.T.apply(self.classify)
-        X_test = not X_test is None or self.X_test
+        X_test = X_test if X_test is not None else self.X_test
         self.predictions = pd.Series(index=X_test.index)
         for i in X_test.index:
-            if not i % 20: print 'Predicting value for x_{}'.format(i)
+            if not i % 100: print 'Predicting value for x_{}'.format(i)
             self.predictions.ix[i] = self.classify(X_test.ix[i])
         return self.predictions
 
     def get_confusion_matrix(self, label_test=None):
-        label_test = label_test if any(label_test) else self.label_test
-        label_test = label_test[LABEL_COL]
+        label_test = label_test if label_test is not None else self.label_test
         predictions = self.predictions
 
         if predictions is None:
@@ -63,7 +67,7 @@ class Classifier(object):
         assert len(label_test) == len(predictions), 'Test and prediction not aligned!'
             
         classes = self.classes
-        cm = pd.DataFrame([classes for _ in classes], columns=classes) - classes
+        cm = pd.DataFrame([classes for _ in classes], columns=classes, index=classes) - classes
         for i in predictions.index:
             prediction = predictions[i]
             label = label_test[i]
@@ -84,10 +88,10 @@ class Classifier(object):
         return self.X_train[self.get_class_index(_class)]
 
     def get_class_index(self, _class):
-        return self.label_train[LABEL_COL] == _class
+        return self.label_train == _class
 
     def dimensions(self, sample=None):
-        sample = sample if any(sample) else self.X_train
+        sample = sample if sample is not None else self.X_train
         return sample.iloc[0].index
 
     def draw_image(self, x):
@@ -110,7 +114,7 @@ class KNN(Classifier):
         distances.sort()
         knn = distances.iloc[:self.k].index
         labels = self.label_train.ix[knn]
-        counts = labels.groupby(LABEL_COL).count()
+        counts = labels.groupby(labels).count()
         counts.sort()
         return counts.index[0]
 
@@ -136,7 +140,7 @@ class Bayes(Classifier):
 
     def _get_pi_hat(self, c):
         labels = self.label_train
-        pi_hat = labels[labels[LABEL_COL] == c].count()[0] / float(len(labels))
+        pi_hat = labels[labels == c].count() / float(len(labels))
         return pi_hat
 
     def _get_MLE_mean(self, sample):
@@ -152,6 +156,7 @@ class Bayes(Classifier):
             cov += (error.dot(error.T))
         cov /= len(sample)
         return cov
+
 
 class MultiClassBayes(Bayes):
     def __init__(self, *args, **kwargs):
@@ -219,8 +224,13 @@ class BinaryBayes(Bayes):
         fx = x.dot(self.w)
         return 1 if fx >= 0 else -1
 
-
-
+    def classify_all(self, X_test=None):
+        X_test = X_test if X_test is not None else self.X_test
+        fX = X_test.dot(self.w)
+        fX[fX >= 0] = 1
+        fX[fX < 0] = -1
+        self.predictions = fX
+        return fX
 
 
 #################################################
@@ -250,7 +260,7 @@ class Logit(Classifier):
     def update_W(self):
         '''w_t -> w_t+1'''
         for c in self.classes:
-            class_data = self.X_train[self.label_train[LABEL_COL] == c]
+            class_data = self.X_train[self.label_train == c]
             gradient_likelihood = self.get_gradient_likelihood(class_data, c)
             self.W[c] += self.eta * gradient_likelihood
 
@@ -329,31 +339,62 @@ class Logit(Classifier):
     # def _log_likelihood_for_x(self, x, _class):
     #     return x.dot(self.W[_class]) - math.log(self.total_probability(x))
 
-#########################################
-### Online Binary Logistic Regression ###
-#########################################
-class Logit(Classifier):
+##################################
+### Binary Logistic Regression ###
+##################################
+class BinaryLogit(Classifier):
     def __init__(self, *args, **kwargs):
-        super(Logit, self).__init__(*args, **kwargs)
+        super(BinaryLogit, self).__init__(*args, **kwargs)
         self.eta = 0.1
         self.w = self.prepare_w()
-        self.log_likelihood_by_step = []
+        self.train()
 
     def prepare_w(self):
         return pd.Series(0, index=self.dimensions())
 
-    def sigma(self, x, y):
-        return 1 / (1 + (math.e ** -(y * x.dot(self.w))))
+    def train(self, n=1000):
+        for _ in range(n):
+            self.update_w()
+
+    def update_w(self):
+        X, y = self.X_train, self.label_train
+        yX = X.mul(y, axis=0)
+        step = (1 - yX.mul(self.sigma(yX), axis=0)).sum()
+        self.w = self.w + (self.eta * step)
+
+    def sigma(self, x):
+        return 1 / (1 + (math.e ** -(x.dot(self.w))))
+
+    def classify_all(self, X=None):
+        X = X if X is not None else self.X_test
+        fX = self.sigma(X)
+        fX[fX >= 0.5] = 1
+        fX[fX < 0.5] = -1
+        self.predictions = fX
+        return fX
+
+
+class OnlineBinaryLogit(BinaryLogit):
+    def __init__(self, *args, **kwargs):
+        super(OnlineBinaryLogit, self).__init__(*args, **kwargs)
+
+    def prepare_w(self):
+        return pd.Series(0, index=self.dimensions())
 
     def update_w(self, i):
-        x, y = self.X.ix[i], self.y.ix[i]
-        self.w = self.w + (self.eta * self.sigma(x, y) * (y*x))
+        x, y = self.X_train.ix[i], self.label_train.ix[i]
+        step = 1 - (self.sigma(y*x) * (y*x))
+        self.w = self.w + (self.eta * step)
 
-    def run(self):
-        for i in self.X.index:
-            self.update_w(i)
+    def train(self):
+        self.stream = list(self.X_train.index)
+        random.shuffle(self.stream)
+        while self.stream:
+            self.step()
 
-
+    def step(self):
+        i = self.stream.pop()
+        self.update_w(i)
 
 
 
