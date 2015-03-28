@@ -58,6 +58,10 @@ class Classifier(object):
         return self.predictions
 
     def get_confusion_matrix(self, label_test=None):
+        '''Create confusion matrix for classifier.
+                   predicted_class
+        true_class      value
+        '''
         label_test = label_test if label_test is not None else self.label_test
         predictions = self.predictions
 
@@ -345,7 +349,6 @@ class Logit(Classifier):
 class BinaryLogit(Classifier):
     def __init__(self, *args, **kwargs):
         super(BinaryLogit, self).__init__(*args, **kwargs)
-        self.eta = 0.1
         self.w = self.prepare_w()
         self.train()
 
@@ -353,13 +356,15 @@ class BinaryLogit(Classifier):
         return pd.Series(0, index=self.dimensions())
 
     def train(self, n=1000):
-        for _ in range(n):
+        self.eta = 0.1/50000
+        for i in range(n):
+            if not i % 10: print 'Iteration {} of {}'.format(i, n)
             self.update_w()
 
     def update_w(self):
         X, y = self.X_train, self.label_train
         yX = X.mul(y, axis=0)
-        step = (1 - yX.mul(self.sigma(yX), axis=0)).sum()
+        step = yX.mul((1 - self.sigma(yX)), axis=0).sum()
         self.w = self.w + (self.eta * step)
 
     def sigma(self, x):
@@ -383,10 +388,11 @@ class OnlineBinaryLogit(BinaryLogit):
 
     def update_w(self, i):
         x, y = self.X_train.ix[i], self.label_train.ix[i]
-        step = 1 - (self.sigma(y*x) * (y*x))
+        step = (1 - self.sigma(y*x)) * (y*x)
         self.w = self.w + (self.eta * step)
 
     def train(self):
+        self.eta = 0.1
         self.stream = list(self.X_train.index)
         random.shuffle(self.stream)
         while self.stream:
