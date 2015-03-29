@@ -116,14 +116,14 @@
 
 My solution involved creating a cumulative sum of weight vector $w$, and selecting an element from this vector by using python's random.random() function.
 
-\includegraphics[scale=.4]{images/bootstrap.png}
+\includegraphics[scale=.5]{images/bootstrap.png}
 
 \subsection*{Part 2}
 
 \begin{enumerate}
 \item [2.] On a single plot, show the training and testing error as a function of iteration t.
 
-\includegraphics[scale=.4]{images/p2testtrain.png}
+\includegraphics[scale=.5]{images/p2testtrain.png}
 
 \item[3.] Indicate the testing accuracy by learning the Bayes classifier on the training set without boosting.
 
@@ -160,7 +160,22 @@ My solution involved creating a cumulative sum of weight vector $w$, and selecti
 
 \item[3.] Indicate the testing accuracy by learning the logistic regression model on the training set without boosting.
 
-For this problem, I implemented a binary logistic regression classifier.
+For this problem, I implemented a binary logistic regression classifier:
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|c|c|cl}
+\hline
+& -1 & 1 \\
+\hline
+-1 & 62 & 19 \\
+1 & 0 & 100 \\
+\hline
+\end{tabular}
+\caption{Confusion matrix for Binary Logistic Regression Classifier, accuracy .8967}
+\label{ex:table}
+\end{table}
+
 \item[4.] Plot $\alpha_t$ and $\epsilon_t$ as a function of $t$.
 
 \includegraphics[scale=.5]{images/p3params.png}

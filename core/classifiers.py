@@ -243,7 +243,8 @@ class BinaryBayes(Bayes):
 class Logit(Classifier):
     def __init__(self, *args, **kwargs):
         super(Logit, self).__init__(*args, **kwargs)
-        self.eta = 0.1 / 50000 # Step size
+        # self.eta = 0.1 / 50000
+        self.eta = 0.1 / 5000
         self.X_train['w0'] = 1 # Absorb w0 intercept
         self.X_test['w0'] = 1 # Absorb w0 intercept
         self.W = self.prepare_W()
@@ -276,6 +277,11 @@ class Logit(Classifier):
         return gradient_likelihoods.sum() 
         
     def softmax(self, xTw, _class):
+        '''Give likelihood that data comes from _class
+
+        num: e ^ xTw, with w coming from _class
+        denom: Sum[e ^ xTw], summing across w from all classes
+        '''
         beta = xTw.max(axis=1)
         num = math.e ** (xTw[_class] - beta)
         denom = (math.e ** (xTw.sub(beta, axis=0))).sum(axis=1)
@@ -302,12 +308,6 @@ class Logit(Classifier):
             x_odds.sort(ascending=False)
             prediction = x_odds.index[0]
             self.predictions[i] = prediction
-
-    def softmax_probabilities(self, x):
-        xTW = x.dot(self.W)
-        probabilities = (math.e ** x.dot(self.W)) / (math.e ** xTW).sum()
-        assert probabilities.sum() - 1 < 0.00001
-        return probabilities
 
     # def update_W(self):
     #     '''w_t -> w_t+1'''
@@ -356,7 +356,8 @@ class BinaryLogit(Classifier):
         return pd.Series(0, index=self.dimensions())
 
     def train(self, n=1000):
-        self.eta = 0.1/50000
+        # self.eta = 0.1/50000
+        self.eta = 0.1
         for i in range(n):
             if not i % 10: print 'Iteration {} of {}'.format(i, n)
             self.update_w()
@@ -365,7 +366,7 @@ class BinaryLogit(Classifier):
         X, y = self.X_train, self.label_train
         yX = X.mul(y, axis=0)
         step = yX.mul((1 - self.sigma(yX)), axis=0).sum()
-        self.w = self.w + (self.eta * step)
+        self.w += self.eta * step
 
     def sigma(self, x):
         return 1 / (1 + (math.e ** -(x.dot(self.w))))
@@ -389,7 +390,7 @@ class OnlineBinaryLogit(BinaryLogit):
     def update_w(self, i):
         x, y = self.X_train.ix[i], self.label_train.ix[i]
         step = (1 - self.sigma(y*x)) * (y*x)
-        self.w = self.w + (self.eta * step)
+        self.w += (self.eta * step)
 
     def train(self):
         self.eta = 0.1

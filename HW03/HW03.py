@@ -5,7 +5,9 @@
 '''
 from HW03.HW03 import *
 import core.classifiers as c
+logit = c.Logit(X_train, y_train, X_test, y_test)
 logit = c.BinaryLogit(X_train, y_train, X_test, y_test)
+
 bayes = c.BinaryBayes(X_train, y_train, X_test, y_test)
 
 import core.ensemble as e
@@ -45,13 +47,12 @@ def part1():
 
 def part2():
     adaboost = AdaBoost(X_train, y_train, X_test, y_test, BinaryBayes)
-    adaboost.iterate(10)
+    adaboost.iterate(1000)
     return adaboost
-    # w indices: 100, 280, 420
 
 def part3():
     adaboost = AdaBoost(X_train, y_train, X_test, y_test, OnlineBinaryLogit)
-    adaboost.iterate(10)
+    adaboost.iterate(1000)
     return adaboost
 
 if __name__ == '__main__':
