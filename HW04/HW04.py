@@ -7,13 +7,13 @@ from HW04.HW04 import *
 '''
 
 import os
+import random
+random.seed('Siddhartha')
 
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from core.classifiers import BinaryBayes, BinaryLogit, OnlineBinaryLogit
-from core.ensemble import AdaBoost, Bootstrapper
-from core import visualizer
+from core.ensemble import Bootstrapper
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 ratings = pd.read_csv(PATH + '/movies_csv/ratings.txt', header=None)
@@ -21,9 +21,15 @@ ratings_test = pd.read_csv(PATH + '/movies_csv/ratings_test.txt', header=None)
 movies = pd.read_csv(PATH + '/movies_csv/movies.txt', header=None)
 
 
-def part1():
+def generate_sample():
+    w = pd.Series([.2, .5, .3])
+    n = 500
+    bootstrapper = Bootstrapper(w, n)
+
+
+def problem1():
     pass
 
 
 if __name__ == '__main__':
-    part1()
+    problem1()
