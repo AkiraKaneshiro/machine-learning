@@ -19,8 +19,8 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 
-from core.classifiers import BinaryBayes, BinaryLogit, OnlineBinaryLogit
-from core.ensemble import AdaBoost, Bootstrapper
+from core.supervised.classifiers import BinaryBayes, BinaryLogit, OnlineBinaryLogit
+from core.supervised.ensemble import AdaBoost, Bootstrapper
 from core import visualizer
 
 PATH = os.path.dirname(os.path.realpath(__file__))

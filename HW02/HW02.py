@@ -14,7 +14,7 @@ import os
 
 import pandas as pd
 
-from core import classifiers
+from core.supervised import classifiers
 
 path = os.path.dirname(os.path.realpath(__file__))
 
