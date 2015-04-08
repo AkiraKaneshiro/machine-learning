@@ -110,80 +110,21 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section*{Problem 1 (boosting)}
+\section*{Problem 1 (K-Means)}
 
 \subsection*{Part 1}
 
-My solution involved creating a cumulative sum of weight vector $w$, and selecting an element from this vector by using python's random.random() function.
-
-\includegraphics[scale=.5]{images/bootstrap.png}
+Plot the value of the objective function for K = 2,3,4,5 run over 20 iterations:
+	
+\includegraphics[scale=.8]{images/km_objective.png}
 
 \subsection*{Part 2}
 
-\begin{enumerate}
-\item [2.] On a single plot, show the training and testing error as a function of iteration t.
+For k = 3, 5, plot the 500 data points and indicate the means:
+		
+\includegraphics[scale=.6]{images/k3}
 
-\includegraphics[scale=.5]{images/p2testtrain.png}
+\includegraphics[scale=.6]{images/k5}
 
-\item[3.] Indicate the testing accuracy by learning the Bayes classifier on the training set without boosting.
-
-\begin{table}[!th]
-\centering
-\begin{tabular}{|c|c|cl}
-\hline
-& -1 & 1 \\
-\hline
--1 & 54 & 27 \\
-1 & 2 & 101 \\
-\hline
-\end{tabular}
-\caption{Confusion matrix for Binary Bayes Classifier, accuracy .8423}
-\label{ex:table}
-\end{table}
-
-\item[4.] Plot $\alpha_t$ and $\epsilon_t$ as a function of $t$.
-
-\includegraphics[scale=.5]{images/p2params.png}
-
-\item[5.] Pick 3 data points and plot their corresponding wt(i) as a function of t. Select the points such that there is some variation in these values.
-
-\includegraphics[scale=.5]{images/p2w.png}
-
-\end{enumerate}
-
-\subsection*{Part 3}
-
-\begin{enumerate}
-\item [2.] On a single plot, show the training and testing error as a function of iteration t.
-
-\includegraphics[scale=.5]{images/p3testtrain.png}
-
-\item[3.] Indicate the testing accuracy by learning the logistic regression model on the training set without boosting.
-
-For this problem, I implemented a binary logistic regression classifier:
-
-\begin{table}[!th]
-\centering
-\begin{tabular}{|c|c|cl}
-\hline
-& -1 & 1 \\
-\hline
--1 & 62 & 19 \\
-1 & 0 & 100 \\
-\hline
-\end{tabular}
-\caption{Confusion matrix for Binary Logistic Regression Classifier, accuracy .8967}
-\label{ex:table}
-\end{table}
-
-\item[4.] Plot $\alpha_t$ and $\epsilon_t$ as a function of $t$.
-
-\includegraphics[scale=.5]{images/p3params.png}
-
-\item[5.] Pick 3 data points and plot their corresponding wt(i) as a function of t. Select the points such that there is some variation in these values.
-
-\includegraphics[scale=.5]{images/p3w.png}
-
-\end{enumerate}
 
 \end{document}

@@ -4,6 +4,8 @@
 
 '''
 from HW04.HW04 import *
+kms = problem1()
+
 s = generate_sample()
 '''
 
@@ -15,7 +17,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from core.ensemble import Bootstrapper
+
+from core.supervised.ensemble import Bootstrapper
+from core.unsupervised.clustering import KMeans
 from core.visualizer import draw_sample
 
 PATH = os.path.dirname(os.path.realpath(__file__))
@@ -39,14 +43,23 @@ def generate_sample(draw=False):
     sample.extend(np.random.multivariate_normal(mean=mu0, cov=cov, size=n0))
     sample.extend(np.random.multivariate_normal(mean=mu1, cov=cov, size=n1))
     sample.extend(np.random.multivariate_normal(mean=mu2, cov=cov, size=n2))
+    sample = pd.DataFrame(sample)
 
     if draw:
         draw_sample(sample)
+
     return sample
 
 def problem1():
-    sample = generate_sample(True)
+    sample = generate_sample()
+    kms = {}
 
+    for K in [2,3,4,5]:
+        km = KMeans(sample, K=K)
+        km.iterate(20)
+        kms[K] = km
+
+    return kms
 
 if __name__ == '__main__':
     problem1()

@@ -53,6 +53,4 @@ def compare_series(series_dict):
     plt.show()
 
 def draw_sample(sample):
-    x1 = [x[0] for x in sample]
-    x2 = [x[1] for x in sample]
-    plt.scatter(x1, x2)
+    plt.scatter(sample[0], sample[1])

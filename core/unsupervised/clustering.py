@@ -11,7 +11,7 @@ import math
 import random
 random.seed('Merkaba')
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
@@ -19,29 +19,40 @@ from core import visualizer
 
 
 class KMeans(object):
-    def __init__(self, X, k=3):
+    def __init__(self, X, K=3):
         self.X = X
-        self.k = k
+        self.K = K
         self.c = pd.Series(0, index=X.index)
-        self.MU = pd.DataFrame(0, index=range(k), columns=self.dimensions)
+        self.L = []
+        dim = self.dimensions
+        self.MU = pd.DataFrame(
+            np.random.randn(K, len(dim)), index=range(K), columns=dim)
 
     @property
     def dimensions(self):
         return self.X.iloc[0].index
+
+    def iterate(self, n=1):
+        for _ in range(n):
+            self.update_c()
+            self.update_MU()
+            self.update_L()
 
     def update_MU(self):
         '''
         For each mu_k, get all data points where c == k,
             update mu_k with mean for that sample.
         '''
-        for i in self.MU.index:
-            # class_index = self.c[c == i].index
-            class_index = self.c == i
-            x_class = X.ix[class_index]
-            self.MU.ix[i] = self.sample_mu(x_class)
+        for k in self.MU.index:
+            x_class = self.get_class_data(k)
+            self.MU.ix[k] = self.sample_mu(x_class)
+
+    def get_class_data(self, k):
+            class_index = self.c == k
+            return self.X.ix[class_index]
 
     def sample_mu(self, sample):
-        return sample.mean() / len(sample)
+        return sample.sum() / len(sample)
 
     def update_c(self):
         '''
@@ -51,10 +62,22 @@ class KMeans(object):
         '''
         distances = pd.DataFrame(0, index=self.X.index, columns=self.MU.index)
         for i in self.MU.index:
-            distances[i] = self.X - self.MU.ix[i]
+            centered_X = self.X - self.MU.ix[i]
+            distances[i] = (centered_X ** 2).sum(axis=1)
 
         for i in self.X.index:
-            self.c[i] = distances.ix[i].min() ## Not actually min, but the column name of the min col
+            self.c[i] = distances.ix[i].idxmin()
+
+    def update_L(self):
+        l = 0
+        for k in self.MU.index:
+            x_class = self.get_class_data(k)
+            l += ((x_class - self.MU.ix[k]) ** 2).sum(axis=1).sum()
+        self.L.append(l)
+
+    def draw_sample(self):
+        plt.scatter(self.X[0], self.X[1])
+        plt.scatter(self.MU[0], self.MU[1], color='r', marker='x')
 
 
 
