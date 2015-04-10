@@ -4,8 +4,9 @@
 
 '''
 from HW04.HW04 import *
-kms = problem1()
+rec = problem2()
 
+kms = problem1()
 s = generate_sample()
 '''
 
@@ -20,12 +21,19 @@ import pandas as pd
 
 from core.supervised.ensemble import Bootstrapper
 from core.unsupervised.clustering import KMeans
+from core.unsupervised.recommendation import Recommender
 from core.visualizer import draw_sample
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 ratings = pd.read_csv(PATH + '/movies_csv/ratings.txt', header=None)
 ratings_test = pd.read_csv(PATH + '/movies_csv/ratings_test.txt', header=None)
+
+cols = ['users', 'movies', 'ratings']
+ratings.columns = cols
+ratings_test.columns = cols
 # movies = pd.read_csv(PATH + '/movies_csv/movies.txt', header=None)
+
+M = pd.pivot_table(ratings, rows='users', cols='movies')['ratings']
 
 
 def generate_sample(draw=False):
@@ -61,5 +69,11 @@ def problem1():
 
     return kms
 
+def problem2():
+    rec = Recommender(M, d=20, var=0.25, lmbda=10)
+    rec.iterate(10)
+    return rec
+
 if __name__ == '__main__':
     problem1()
+    problem2()
