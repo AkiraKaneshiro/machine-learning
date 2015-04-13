@@ -29,7 +29,6 @@ class Recommender(object):
         self.V = self.generate_location(idx=self.M.columns)
         self.RMSE = []
         self.LJL = []
-        self.steps = 0
 
     @property
     def dimensions(self):
@@ -55,7 +54,6 @@ class Recommender(object):
             self.update_u(i)
 
     def update_u(self, i):
-        self.steps += 1
         Mij = self.M.ix[i].dropna()
         omega_vj = Mij.index
         vj = self.V.ix[omega_vj]
@@ -72,7 +70,6 @@ class Recommender(object):
             self.update_v(j)
 
     def update_v(self, j):
-        self.steps += 1
         Mij = self.M[j].dropna()
         omega_ui = Mij.index
         ui = self.U.ix[omega_ui]
@@ -84,8 +81,13 @@ class Recommender(object):
         v = np.linalg.inv(term1 + term2).dot(term3)
         self.V.ix[j] = v
 
-    def recommend(self):
-        return self.U.dot(self.V.T)
+    def recommend(self, as_int=True):
+        rec = self.U.dot(self.V.T)
+        if as_int:
+            rec = np.round(rec)
+            rec[rec < 0] = 0
+            rec[rec > 5] = 5
+        return rec
 
     def get_RMSE(self):
         '''Get Root Mean Square Error'''
@@ -96,12 +98,12 @@ class Recommender(object):
         for i in self.M_test.index:
             for j in self.M_test.ix[i].dropna().index:
                 try:
-                    error = M_rec.ix[i][j] - self.M_test.ix[i][j]
+                    error = self.M_test.ix[i][j] - M_rec.ix[i][j]
                     errors.append(error)
                 except KeyError as ex:
-                    # print ex
                     pass
-        return math.sqrt(sum([e**2 for e in errors]) / len(errors))
+        # return math.sqrt(sum([e**2 for e in errors]) / len(errors))
+        return math.sqrt((pd.Series(errors) ** 2).mean())
 
     def get_LJL(self):
         '''Get the log joint likelihood'''
@@ -116,6 +118,12 @@ class Recommender(object):
             lnpMij += ((Mi - ui.dot(Vj.T)) ** 2).sum()
         lnpMij *= -(1./(2*self.var))
         return lnpMij + lnpUi + lnpVj
+
+    def closest_items(self, j, n=5):
+        item = self.V.ix[j]
+        distances = ((self.V - item) ** 2).sum(axis=1)
+        distances = distances.sort(ascending=False)
+        return distances.iloc[:n].index
 
 
 

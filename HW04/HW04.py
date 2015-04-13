@@ -27,7 +27,11 @@ from core.visualizer import draw_sample
 PATH = os.path.dirname(os.path.realpath(__file__))
 ratings = pd.read_csv(PATH + '/movies_csv/ratings.txt', header=None)
 ratings_test = pd.read_csv(PATH + '/movies_csv/ratings_test.txt', header=None)
-# movies = pd.read_csv(PATH + '/movies_csv/movies.txt', header=None)
+with open(PATH + '/movies_csv/movies.txt') as f:
+    movies = f.readlines()
+movies = [m.strip() for m in movies]
+movies = pd.Series(movies)
+movies.index = (pd.Series(movies.index) + 1).values
 
 cols = ['user', 'movie', 'rating']
 ratings.columns = cols
@@ -72,9 +76,29 @@ def problem1():
 
 def problem2():
     rec = Recommender(M, d=20, var=0.25, lmbda=10, M_test=M_test)
-    # rec.iterate(10)
+    rec.iterate(2)
     return rec
+
+def problem2_3(rec=None):
+    if rec is None:
+        rec = problem2()
+    U, V = rec.U, rec.V
+    km = KMeans(U, K=30)
+    km.iterate(10)
+    centroids = km.MU[km.MU != 0].dropna()
+    clusters = set()
+    similarities = {}
+    while len(clusters) < 5:
+        clusters.add(random.choice(centroids.index))
+    for c in clusters:
+        c_movie = movies.ix[c]
+        ratings = V.dot(centroids.ix[c])
+        ratings.sort(ascending=False)
+        import ipdb; ipdb.set_trace()
+        similarities[c_movie] = movies.ix[ratings.iloc[:10].index]
+    return km, similarities
 
 if __name__ == '__main__':
     problem1()
-    problem2()
+    rec = problem2()
+    problem2_2(rec)

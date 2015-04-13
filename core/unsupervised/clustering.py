@@ -22,15 +22,20 @@ class KMeans(object):
     def __init__(self, X, K=3):
         self.X = X
         self.K = K
+        self.MU = self.generate_MU()
         self.c = pd.Series(0, index=X.index)
         self.L = []
-        dim = self.dimensions
-        self.MU = pd.DataFrame(
-            np.random.randn(K, len(dim)), index=range(K), columns=dim)
 
     @property
     def dimensions(self):
         return self.X.iloc[0].index
+
+    def generate_MU(self):
+        X, K, dim = self.X, self.K, self.dimensions
+        start_points = set()
+        while len(start_points) < K:
+            start_points.add(random.choice(X.index))
+        return pd.DataFrame(X.ix[start_points], index=range(K), columns=dim)
 
     def iterate(self, n=1):
         for _ in range(n):
@@ -52,7 +57,7 @@ class KMeans(object):
             return self.X.ix[class_index]
 
     def sample_mu(self, sample):
-        return sample.sum() / len(sample)
+        return (sample.sum() / len(sample)) if len(sample) else 0
 
     def update_c(self):
         '''
@@ -77,7 +82,7 @@ class KMeans(object):
 
     def draw_sample(self):
         plt.scatter(self.X[0], self.X[1])
-        plt.scatter(self.MU[0], self.MU[1], color='r', marker='x')
+        plt.scatter(self.MU[0], self.MU[1], color='r', marker='*')
 
 
 
