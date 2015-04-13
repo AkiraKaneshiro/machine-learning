@@ -27,13 +27,14 @@ from core.visualizer import draw_sample
 PATH = os.path.dirname(os.path.realpath(__file__))
 ratings = pd.read_csv(PATH + '/movies_csv/ratings.txt', header=None)
 ratings_test = pd.read_csv(PATH + '/movies_csv/ratings_test.txt', header=None)
-
-cols = ['users', 'movies', 'ratings']
-ratings.columns = cols
-ratings_test.columns = cols
 # movies = pd.read_csv(PATH + '/movies_csv/movies.txt', header=None)
 
-M = pd.pivot_table(ratings, rows='users', cols='movies')['ratings']
+cols = ['user', 'movie', 'rating']
+ratings.columns = cols
+ratings_test.columns = cols
+
+M = pd.pivot_table(ratings, rows='user', cols='movie')['rating']
+M_test = pd.pivot_table(ratings_test, rows='user', cols='movie')['rating']
 
 
 def generate_sample(draw=False):
@@ -70,8 +71,8 @@ def problem1():
     return kms
 
 def problem2():
-    rec = Recommender(M, d=20, var=0.25, lmbda=10)
-    rec.iterate(10)
+    rec = Recommender(M, d=20, var=0.25, lmbda=10, M_test=M_test)
+    # rec.iterate(10)
     return rec
 
 if __name__ == '__main__':
