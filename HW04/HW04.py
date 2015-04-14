@@ -10,6 +10,7 @@ kms = problem1()
 s = generate_sample()
 '''
 
+from pprint import pprint
 import os
 import random
 random.seed('Siddhartha')
@@ -28,10 +29,10 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 ratings = pd.read_csv(PATH + '/movies_csv/ratings.txt', header=None)
 ratings_test = pd.read_csv(PATH + '/movies_csv/ratings_test.txt', header=None)
 with open(PATH + '/movies_csv/movies.txt') as f:
-    movies = f.readlines()
-movies = [m.strip() for m in movies]
-movies = pd.Series(movies)
-movies.index = (pd.Series(movies.index) + 1).values
+    titles = f.readlines()
+titles = [m.strip() for m in titles]
+# movies = pd.Series(movies)
+# movies.index = (pd.Series(movies.index) + 1).values
 
 cols = ['user', 'movie', 'rating']
 ratings.columns = cols
@@ -39,6 +40,7 @@ ratings_test.columns = cols
 
 M = pd.pivot_table(ratings, rows='user', cols='movie')['rating']
 M_test = pd.pivot_table(ratings_test, rows='user', cols='movie')['rating']
+M_test = M_test.drop([1325, 1414, 1577, 1604, 1637, 1681], axis=1)
 
 
 def generate_sample(draw=False):
@@ -63,6 +65,9 @@ def generate_sample(draw=False):
 
     return sample
 
+def get_title(idx):
+    return titles[idx-1]
+
 def problem1():
     sample = generate_sample()
     kms = {}
@@ -79,26 +84,46 @@ def problem2():
     rec.iterate(2)
     return rec
 
+def problem2_2(rec=None):
+    if rec is None:
+        rec = problem2()
+
+    movies = [random.choice(rec.M.index) for _ in range(3)]
+    for idx in movies:
+        distances = rec.closest_items(idx, n=5)
+        neighbors = {get_title(idx): distances[idx] for idx in distances.index}
+        print '#####', get_title(idx)
+        pprint(neighbors)
+
 def problem2_3(rec=None):
     if rec is None:
         rec = problem2()
+
     U, V = rec.U, rec.V
     km = KMeans(U, K=30)
     km.iterate(10)
     centroids = km.MU[km.MU != 0].dropna()
-    clusters = set()
+    assert len(centroids) >= 5, 'Not enough centroids!'
+    print len(centroids), 'centroids'
+    ptypes = set()
+    while len(ptypes) < 5:
+        ptypes.add(random.choice(centroids.index))
+    similarities = map_ptypes(ptypes, centroids, V)
+    pprint(similarities)
+    return km
+
+def map_ptypes(ptypes, centroids, V):
     similarities = {}
-    while len(clusters) < 5:
-        clusters.add(random.choice(centroids.index))
-    for c in clusters:
-        c_movie = movies.ix[c]
-        ratings = V.dot(centroids.ix[c])
+    for ptype in ptypes:
+        ratings = V.dot(centroids.ix[ptype])
         ratings.sort(ascending=False)
-        import ipdb; ipdb.set_trace()
-        similarities[c_movie] = movies.ix[ratings.iloc[:10].index]
-    return km, similarities
+        top_10 = ratings.iloc[:10].index
+        similarities[ptype] = [(get_title(i), ratings[i]) for i in top_10]
+    return similarities
+
 
 if __name__ == '__main__':
     problem1()
     rec = problem2()
     problem2_2(rec)
+    problem2_3(rec)

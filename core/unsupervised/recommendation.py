@@ -61,7 +61,6 @@ class Recommender(object):
         term1 = pd.DataFrame(self.lmbda * self.var * np.identity(self.d))
         term2 = vj.T.dot(vj)
         term3 = Mij.dot(vj)
-
         u = np.linalg.inv(term1 + term2).dot(term3)
         self.U.ix[i] = u
         
@@ -96,14 +95,12 @@ class Recommender(object):
         errors = []
         M_rec = self.recommend()
         for i in self.M_test.index:
-            for j in self.M_test.ix[i].dropna().index:
-                try:
-                    error = self.M_test.ix[i][j] - M_rec.ix[i][j]
-                    errors.append(error)
-                except KeyError as ex:
-                    pass
-        # return math.sqrt(sum([e**2 for e in errors]) / len(errors))
-        return math.sqrt((pd.Series(errors) ** 2).mean())
+            Mi = self.M_test.ix[i].dropna()
+            omega_vj = Mi.index
+            error = Mi - M_rec.ix[i, omega_vj]
+            errors.extend(error.values)
+        errors = pd.Series(errors)
+        return math.sqrt((errors ** 2).mean())
 
     def get_LJL(self):
         '''Get the log joint likelihood'''
@@ -122,8 +119,8 @@ class Recommender(object):
     def closest_items(self, j, n=5):
         item = self.V.ix[j]
         distances = ((self.V - item) ** 2).sum(axis=1)
-        distances = distances.sort(ascending=False)
-        return distances.iloc[:n].index
+        distances.sort(ascending=False)
+        return distances.iloc[:n]
 
 
 

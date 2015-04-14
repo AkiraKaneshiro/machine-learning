@@ -31,11 +31,12 @@ class KMeans(object):
         return self.X.iloc[0].index
 
     def generate_MU(self):
-        X, K, dim = self.X, self.K, self.dimensions
         start_points = set()
-        while len(start_points) < K:
-            start_points.add(random.choice(X.index))
-        return pd.DataFrame(X.ix[start_points], index=range(K), columns=dim)
+        while len(start_points) < self.K:
+            start_points.add(random.choice(self.X.index))
+        MU = self.X.ix[start_points]
+        MU.index = range(self.K)
+        return MU
 
     def iterate(self, n=1):
         for _ in range(n):
