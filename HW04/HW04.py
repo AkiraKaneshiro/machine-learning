@@ -22,7 +22,7 @@ import pandas as pd
 
 from core.supervised.ensemble import Bootstrapper
 from core.unsupervised.clustering import KMeans
-from core.unsupervised.recommendation import Recommender
+from core.unsupervised.factorization import Recommender
 from core.visualizer import draw_sample
 
 PATH = os.path.dirname(os.path.realpath(__file__))
