@@ -9,7 +9,7 @@ All functions currently operate on a pandas DataFrame or Series.
 
 import math
 import random
-random.seed('Ozymandias')
+random.seed('Polanyi')
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,13 +17,88 @@ import pandas as pd
 
 from core import visualizer
 
+SQERR = 'sqerr'
+DVRG = 'dvrg'
+TINY = 10 ** -16
 
-class Recommender(object):
+class NMF(object):
+    def __init__(self, X, d=25, objective=SQERR):
+        self.X = X
+        self.d = d
+        self.objective = objective
+        self.H = self.generate_location(self.X.columns).T
+        self.W = self.generate_location(self.X.index)
+        self.objs = []
+
+    @property
+    def WH(self):
+        return self.W.dot(self.H)
+
+    def generate_location(self, idx):
+        return np.abs(pd.DataFrame(np.random.randn(len(idx), self.d), index=idx))
+
+    def iterate(self, n=1):
+        for _ in range(n):
+            print 'Iteration', len(self.objs)
+            self.update()
+
+    def update(self):
+        if self.objective == SQERR:
+            self.update_sqerr()
+        elif self.objective == DVRG:
+            self.update_dvrg()
+        else:
+            raise ValueError('Unrecognized objective function!')
+
+    # Squared Error Objective
+    def update_sqerr(self):
+        self.update_H_sqerr()
+        self.update_W_sqerr()
+        self.update_objective_sqerr()
+
+    def update_objective_sqerr(self):
+        obj = ((self.X - self.WH) ** 2).sum().sum()
+        self.objs.append(obj)
+
+    def update_H_sqerr(self):
+        num = self.W.T.dot(self.X)
+        denom = self.W.T.dot(self.W).dot(self.H)
+        self.H = self.H.mul(num.div(denom+TINY))
+
+    def update_W_sqerr(self):
+        num = self.X.dot(self.H.T)
+        denom = self.W.dot(self.H).dot(self.H.T)
+        self.W = self.W.mul(num.div(denom+TINY))
+
+    # Divergence Objective
+    def update_dvrg(self):
+        self.update_H_dvrg()
+        self.update_W_dvrg()
+        self.update_objective_dvrg()
+
+    def update_objective_dvrg(self):
+        WH = self.WH
+        obj = -((self.X.mul(np.log(WH)) - WH).sum().sum())
+        # obj = (self.X.mul(np.log(1./WH)) + WH).sum().sum()
+        self.objs.append(obj)
+
+    def update_H_dvrg(self):
+        purple = self.X.div(self.WH+TINY)
+        nrmlW = (self.W / self.W.sum()).T
+        self.H = self.H.mul(nrmlW.dot(purple))
+
+    def update_W_dvrg(self):
+        purple = self.X.div(self.WH+TINY)
+        nrmlH = (self.H.T / self.H.T.sum())
+        self.W = self.W.mul(purple.dot(nrmlH))
+
+
+class PMF(object):
     def __init__(self, M, d=20, var=0.25, lmbda=10, M_test=None):
+        self.M = M
         self.d = d
         self.var = var
         self.lmbda = lmbda
-        self.M = M
         self.M_test = M_test
         self.U = self.generate_location(idx=self.M.index)
         self.V = self.generate_location(idx=self.M.columns)
@@ -39,7 +114,7 @@ class Recommender(object):
         return pd.DataFrame(
                     np.random.multivariate_normal(
                         mean=np.zeros(d), cov=(1./l)*np.identity(d), size=n),
-                    index = idx)
+                    index=idx)
 
     def iterate(self, n=1):
         for _ in range(n):
