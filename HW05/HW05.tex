@@ -110,204 +110,146 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section*{Problem 1 (K-Means)}
+\section*{Problem 1 (Markov Chains)}
 
 \subsection*{Part 1}
 
-Plot the value of the objective function for K = 2,3,4,5 run over 20 iterations:
-	
-\includegraphics[scale=.5]{images/km_objective.png}
+Use $w_t$ to rank the teams by sorting in decreasing value according to this vector. List the top 20 teams and their corresponding values in $w_t$ for $t = {10, 100, 200, 1000}$.
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|l|c|cl}
+\hline
+Team & Value \\
+\hline
+UW-Whitewater & 0.0153227778802 \\
+MountUnion & 0.0130742707022 \\
+ColoradoSt-Pueblo & 0.010261008372 \\
+OhioState & 0.00900979434094 \\
+Linfield & 0.00878443452911 \\
+MinnSt-Mankato & 0.00821200630016 \\
+Wartburg & 0.00801802217138 \\
+Wesley & 0.00748839125774 \\
+SouthernOregon & 0.00744005399386 \\
+Oregon & 0.0071542337095 \\
+Alabama & 0.00714054428404 \\
+NorthDakotaSt & 0.00669991126614 \\
+TCU & 0.00645504966615 \\
+MaryHardin-Baylor & 0.00597635138467 \\
+FloridaSt & 0.005944344405 \\
+Hobart & 0.00590135339447 \\
+JohnCarroll & 0.00586308936461 \\
+MarianIN & 0.00580349073704 \\
+Widener & 0.00578632328033 \\
+Concord & 0.00568551087686 \\
+\hline
+\end{tabular}
+\caption{Teams and values for t=10}
+\label{ex:table}
+\end{table}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|l|c|cl}
+\hline
+Team & Value \\
+\hline
+UW-Whitewater & 0.0292759841104 \\
+OhioState & 0.0276631131678 \\
+Oregon & 0.0227262816528 \\
+Alabama & 0.0186769498344 \\
+TCU & 0.0183015022646 \\
+MountUnion & 0.0168714020987 \\
+FloridaSt & 0.0146308745614 \\
+MichiganSt & 0.0130287913339 \\
+ColoradoSt-Pueblo & 0.012999116209 \\
+SouthernOregon & 0.0124931074259 \\
+Baylor & 0.0122206343863 \\
+GeorgiaTech & 0.0118210801366 \\
+Wartburg & 0.0106811487305 \\
+UCLA & 0.0106652138505 \\
+Mississippi & 0.0103657540733 \\
+CarrollMT & 0.0102792997905 \\
+Georgia & 0.0101168632625 \\
+Arizona & 0.00994307528077 \\
+ArizonaSt & 0.00912162056362 \\
+MississippiSt & 0.0090671268847 \\
+\hline
+\end{tabular}
+\caption{Teams and values for t=100}
+\label{ex:table}
+\end{table}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|l|c|cl}
+\hline
+Team & Value \\
+\hline
+OhioState & 0.0356757203263 \\
+Oregon & 0.0292979320671 \\
+Alabama & 0.0239204810578 \\
+TCU & 0.0236056409908 \\
+UW-Whitewater & 0.0191553895457 \\
+FloridaSt & 0.0187911709573 \\
+MichiganSt & 0.0166595765885 \\
+Baylor & 0.0157327395 \\
+GeorgiaTech & 0.0151480610494 \\
+UCLA & 0.0137355513553 \\
+Mississippi & 0.0132373410973 \\
+Georgia & 0.0128562962337 \\
+Arizona & 0.0127962161082 \\
+ArizonaSt & 0.0116942892545 \\
+MississippiSt & 0.0115882512213 \\
+Missouri & 0.0109227285554 \\
+MountUnion & 0.01048154381 \\
+Clemson & 0.0103123184305 \\
+Wisconsin & 0.0102724621755 \\
+SouthernCal & 0.0102651556364 \\
+\hline
+\end{tabular}
+\caption{Teams and values for t=200}
+\label{ex:table}
+\end{table}
+
+\begin{table}[!th]
+\centering
+\begin{tabular}{|l|c|cl}
+\hline
+Team & Value \\
+\hline
+OhioState & 0.0472737708834 \\
+Oregon & 0.0386971441277 \\
+Alabama & 0.0315958368555 \\
+TCU & 0.031317292759 \\
+FloridaSt & 0.0249231120778 \\
+MichiganSt & 0.0219207852619 \\
+Baylor & 0.0208339972713 \\
+GeorgiaTech & 0.0200625100155 \\
+UCLA & 0.0181228900719 \\
+Mississippi & 0.0174344644901 \\
+Georgia & 0.0169004740984 \\
+Arizona & 0.0168528192982 \\
+ArizonaSt & 0.0153643645 \\
+MississippiSt & 0.0152864883047 \\
+Missouri & 0.0141237034838 \\
+Clemson & 0.013628692964 \\
+SouthernCal & 0.0135103536879 \\
+Wisconsin & 0.0133401562399 \\
+Auburn & 0.013274678939 \\
+Utah & 0.0129068326338 \\
+\hline
+\end{tabular}
+\caption{Teams and values for t=1000}
+\label{ex:table}
+\end{table}
 
 \subsection*{Part 2}
 
-For k = 3, 5, plot the 500 data points and indicate the means:
-		
-\includegraphics[scale=.5]{images/k3}
+\includegraphics[scale=.5]{images/mm_eigdiff}
 
-K=3
+$||w_t - u_{1_{norm}}||_1$ as a function of $t$
 
-\includegraphics[scale=.5]{images/k5}
-
-K=5
-
-\section*{Problem 2 (Matrix Factorization)}
-
-\subsection*{Part 1}
-
-Plot the RMSE of your predictions on this test set as a function of training iteration. On a separate plot show the log joint likelihood as a function of iteration.
-
-\includegraphics[scale=.5]{images/rmse}
-
-Root Mean Square Error
-
-\includegraphics[scale=.5]{images/ljl}
-
-Log Joint Likelihood
-
-\subsection*{Part 2}
-
-Pick three movies and for each movie find the 5 closest movies according to Euclidean distance using their respective locations $v_i$. List the query movie, the five nearest movies and their distances. A mapping from index to movie is given with the data.
-
-\textbf{American President, The (1995)}:
-
-- 'Boogie Nights (1997)': 12.289614399025282,
-
- - 'Everyone Says I Love You (1996)': 11.256697317789136,
-
- - 'Jackie Brown (1997)': 11.845881441814806,
-
- - 'Leaving Las Vegas (1995)': 11.502639879587134,
-
- - 'Lost Highway (1997)': 11.508749002317485
- 
- ---
- 
-\textbf{Once Upon a Time in America (1984)}:
-
-- 'Crash (1996)': 9.7582811139410222,
-
-- 'Everyone Says I Love You (1996)': 10.965926355087346,
-
-- 'Evita (1996)': 13.883277684441039,
-
-- 'Mother (1996)': 9.8714055212553244,
-
-- 'Saint, The (1997)': 10.060582911571393
- 
- ---
- 
-\textbf{Ben-Hur (1959)}:
-
-- 'English Patient, The (1996)': 13.334206228955669,
-
-- 'Everyone Says I Love You (1996)': 13.030630831731056,
-
-- 'Evita (1996)': 13.373182102561227,
-
-- 'Lost Highway (1997)': 12.99448128577829,
-
-- 'Mother (1996)': 15.102456207015678
-
-\subsection*{Part 3}
-
-Perform K-means on the $u_1, . . . , u_{N1}$ learned by your algorithm. Set $K$ = 30. The centroids can be interpreted as personality types (as far as movies are concerned). Pick 5 centroids. For each centroid, characterize the cluster by showing the 10 movies with the largest (most positive) dot product to that centroid.	
-
-\textbf{Centroid 3}:
-
-[('Godfather, The (1972)', 4.7184533749610802),
-
-     ('L.A. Confidential (1997)', 4.5925149458403443),
-     
-     ('Jackie Brown (1997)', 4.5322949319352333),
- 
-     ('Godfather: Part II, The (1974)', 4.524063347210312),
- 
-     ("One Flew Over the Cuckoo's Nest (1975)", 4.4742673268931075),
- 
-     ('North by Northwest (1959)', 4.4215418122679981),
- 
-     ('Silence of the Lambs, The (1991)', 4.3993152612511812),
- 
-     ('Psycho (1960)', 4.3845790178796502),
- 
-     ('High Noon (1952)', 4.3529535156264556),
- 
-     ('Raging Bull (1980)', 4.3204443198774909)],
-     
-     ---
-     
-\textbf{Centroid 4}:
- 
- [('Silence of the Lambs, The (1991)', 4.557299992895854),
- 
-     ('Henry V (1989)', 4.4646471922267148),
- 
-     ('Usual Suspects, The (1995)', 4.462597884519143),
- 
-     ('Die Hard (1988)', 4.4612785815183456),
- 
-     ('Blues Brothers, The (1980)', 4.4327461814166851),
- 
-     ('Shawshank Redemption, The (1994)', 4.4261339426801074),
- 
-     ('Nikita (La Femme Nikita) (1990)', 4.3959800821438479),
- 
-     ('Fugitive, The (1993)', 4.3925052555952107),
- 
-     ('Terminator 2: Judgment Day (1991)', 4.3770856236760061),
- 
-     ('Day the Earth Stood Still, The (1951)', 4.3667358807077434)],
-     
-     ---
-     
-\textbf{Centroid 19}:
- 
- [('Absolute Power (1997)', 5.3246857746580174),
- 
-      ("Jackie Chan's First Strike (1996)", 5.2618901041844115),
- 
-      ('Wedding Singer, The (1998)', 5.1677201794345562),
- 
-      ('Aristocats, The (1970)', 4.9388278307790934),
- 
-      ('Immortal Beloved (1994)', 4.8405296710573822),
- 
-      ('Babe (1995)', 4.8244986246259387),
- 
-      ('Sound of Music, The (1965)', 4.7967544449427972),
- 
-      ('Replacement Killers, The (1998)', 4.767350531353407),
- 
-      ('Kingpin (1996)', 4.7179323871595393),
- 
-      ('Conspiracy Theory (1997)', 4.7139296230923238)],
-      
-      ---
-      
-\textbf{Centroid 20}:
- 
- [('Dr. Strangelove or: How I Learned to Stop Worrying and Love the Bomb (1963)', 4.6828018823687412),
- 
-      ('Close Shave, A (1995)', 4.6549510725637795),
- 
-      ('Citizen Kane (1941)', 4.628284564385325),
- 
-      ('Lawrence of Arabia (1962)', 4.5000488815891675),
- 
-      ('Rear Window (1954)', 4.4890186194668917),
- 
-      ('Wrong Trousers, The (1993)', 4.4880402007879052),
- 
-      ('Godfather, The (1972)', 4.484296146401471),
- 
-      ('Kolya (1996)', 4.4650279836087741),
- 
-      ('Lone Star (1996)', 4.4584969668617465),
- 
-      ('North by Northwest (1959)', 4.4536776645909484)],
-      
-      ---
- 
-\textbf{Centroid 21}:
- 
- [('Fast, Cheap, and Out of Control (1997)', 5.4954521220655863),
- 
-      ('Alien (1979)', 5.2681630706563194),
- 
-      ('Big Sleep, The (1946)', 5.1120579475632724),
- 
-      ('12 Angry Men (1957)', 5.0446240885383631),
- 
-      ('Psycho (1960)', 5.0232558189519914),
- 
-      ('Crash (1996)', 5.0206367903721913),
- 
-      ('North by Northwest (1959)', 5.0202825687314139),
- 
-      ('Bride of Frankenstein (1935)', 4.9890033207285729),
- 
-      ('Citizen Kane (1941)', 4.9778390450581531),
- 
-      ('Terminator 2: Judgment Day (1991)', 4.9686310854118272)]
+At $t_1000$, $||w_t - u_{1_{norm}}||_1 =  0.035755717237148765$
 
 \end{document}

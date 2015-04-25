@@ -4,10 +4,10 @@
 
 '''
 from HW05.HW05 import *
+mm = problem1()
+
 nmf = problem2_2()
 nmf.iterate(50)
-
-from core.unsupervised.markov import Markov
 '''
 
 from datetime import datetime
