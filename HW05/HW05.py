@@ -4,9 +4,9 @@
 
 '''
 from HW05.HW05 import *
-nmf = problem2_1()
-
 nmf = problem2_2()
+
+nmf = problem2_1()
 mm = problem1()
 nmf.iterate(50)
 '''
@@ -28,7 +28,6 @@ from core.unsupervised.factorization import NMF
 
 PATH = os.path.dirname(os.path.realpath(__file__))
 
-start = datetime.now()
 ### Scores
 scores = pd.read_csv(PATH + '/hw5text/cfb2014scores.csv', header=None)
 scores.columns = ['T1', 'T1p', 'T2', 'T2p']
@@ -36,29 +35,23 @@ with open(PATH + '/hw5text/legend.txt') as f:
     teams = f.readlines()
 def get_team(idx):
     return teams[idx-1].strip()
-print (datetime.now() - start).total_seconds(), 'time to load scores.'
 
 ### Faces
 faces = pd.read_csv(PATH + '/hw5text/faces.csv', header=None)
-print (datetime.now() - start).total_seconds(), 'time to load faces.'
 
 ### Documents
-# with open(PATH + '/hw5text/nyt_data.txt') as f:
-#     raw_docs = f.readlines()
-# raw_docs = [raw_doc.strip().split(',') for raw_doc in raw_docs]
+NUM_WORDS = 3012
+WORDS_IDX = range(NUM_WORDS+1)[1:]
+with open(PATH + '/hw5text/nyt_data.txt') as f:
+    raw_docs = f.readlines()
+raw_docs = [raw_doc.strip().split(',') for raw_doc in raw_docs]
 
-# def raw_doc_to_df(raw_doc):
-#     doc = pd.DataFrame([word_count.split(':') for word_count in raw_doc])
-#     doc.columns = ['word', 0]
-#     doc = doc.set_index('word')
-#     return doc
-
-# docs = raw_doc_to_df(raw_docs[0])
-# for i, raw_doc in enumerate(raw_docs[1:]):
-#     doc = raw_doc_to_df(raw_docs[i])
-#     doc.
-#     docs[i+1] = doc
-# print (datetime.now() - start).total_seconds(), 'time to load docs.'
+def raw_doc_to_df(raw_doc):
+    doc = pd.DataFrame([word_count.split(':') for word_count in raw_doc])
+    doc = doc.convert_objects(convert_numeric=True)
+    doc.columns = ['word', 0]
+    doc = doc.set_index('word')
+    return doc
 
 ### HW Problems
 def problem1():
@@ -79,8 +72,17 @@ def problem2_1():
     nmf.iterate(200)
     return nmf
 
-
 def problem2_2():
+    docs = pd.DataFrame(index=WORDS_IDX)
+    for i, raw_doc in enumerate(raw_docs):
+        if i % 100 == 0: print 'Processing document', i
+        doc = raw_doc_to_df(raw_doc)
+        if len(doc.index) > len(doc.index.unique()):
+            doc = doc.groupby(doc.index).sum()
+        doc.reindex(docs.index)
+        docs[i] = doc
+    docs = docs.fillna(0)
+
     nmf = NMF(docs, d=25, objective='dvrg')
     # nmf = NMF(faces, d=25, objective='dvrg')
     # nmf.iterate(200)
