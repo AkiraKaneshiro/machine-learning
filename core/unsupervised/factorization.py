@@ -15,8 +15,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from core import visualizer
-
 SQERR = 'sqerr'
 DVRG = 'dvrg'
 TINY = 10 ** -16
@@ -92,6 +90,9 @@ class NMF(object):
         nrmlH = (self.H.T / self.H.T.sum())
         self.W = self.W.mul(purple.dot(nrmlH))
 
+    def get_w_by_h(self, h):
+        idx = h.idxmax()
+        return self.W[idx]
 
 class PMF(object):
     def __init__(self, M, d=20, var=0.25, lmbda=10, M_test=None):

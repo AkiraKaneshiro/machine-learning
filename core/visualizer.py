@@ -54,3 +54,10 @@ def compare_series(series_dict):
 
 def draw_sample(sample):
     plt.scatter(sample[0], sample[1])
+
+def draw_image(image, transpose=True):
+    dim = int(math.sqrt(len(image)))
+    image = image.reshape(dim, dim)
+    if transpose:
+        image = image.transpose()
+    plt.imshow(image)

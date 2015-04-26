@@ -4,9 +4,10 @@
 
 '''
 from HW05.HW05 import *
-mm = problem1()
+nmf = problem2_1()
 
 nmf = problem2_2()
+mm = problem1()
 nmf.iterate(50)
 '''
 
@@ -20,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from core import visualizer
 from core.unsupervised.markov import MarkovModel
 from core.unsupervised.factorization import NMF
 
@@ -61,12 +63,12 @@ print (datetime.now() - start).total_seconds(), 'time to load faces.'
 ### HW Problems
 def problem1():
     steps = [10, 100, 200, 1000]
+    steps = [10, 90, 100, 800]
     mm = MarkovModel(scores)
     for i, step in enumerate(steps):
         print '#' * 30
         print 'Top teams for iteration', step
-        step_size = step - sum(steps[:i])
-        mm.iterate(step_size)
+        mm.iterate(step)
         top_20 = mm.get_top(20)
         for team in top_20.index:
             print get_team(team), top_20[team], '\n'
@@ -74,11 +76,14 @@ def problem1():
 
 def problem2_1():
     nmf = NMF(faces, d=25, objective='sqerr')
+    nmf.iterate(200)
     return nmf
 
+
 def problem2_2():
-    # nmf = NMF(docs, d=25, objective='dvrg')
-    nmf = NMF(faces, d=25, objective='dvrg')
+    nmf = NMF(docs, d=25, objective='dvrg')
+    # nmf = NMF(faces, d=25, objective='dvrg')
+    # nmf.iterate(200)
     return nmf
 
 if __name__ == '__main__':
