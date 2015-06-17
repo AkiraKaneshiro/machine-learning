@@ -19,35 +19,41 @@ from core import visualizer
 
 class MarkovModel(object):
     def __init__(self, results):
+        '''Currently assumes the following column names:
+        E1 - The index for the first entity
+        E2 - The index for the second entity
+        E1v - The value for the first entity
+        E2v - The value for the second entity
+        '''
         self.build_M_ranking(results)
         self.w = pd.Series(1./len(self.M), index=self.M.index)
         self.nrm_u1 = self.get_normalized_un(n=1)
         self.l1_diffs = []
 
     def build_M_ranking(self, results):
-        '''Build transition matrix M for competing teams using game results'''
+        '''Build transition matrix M for competing entities using encounter values'''
         states = []
-        for idx in ['T1', 'T2']:
+        for idx in ['E1', 'E2']:
             states.extend(results[idx])
         states = set(states)
         self.M = pd.DataFrame(0, index=states, columns=states)
         for i in results.index:
             game = results.ix[i]
-            self.update(game['T1'], game['T2'], game['T1p'], game['T2p'])
+            self.update(game['E1'], game['E2'], game['E1v'], game['E2v'])
 
         self.M = self.M.divide(self.M.sum(axis=1), axis=0)
         assert abs(self.M.sum(axis=1).max() - 1) < 0.0001 # Normalized correctly
         assert abs(self.M.sum(axis=1).min() - 1) < 0.0001 # Normalized correctly
 
-    def update(self, t1_idx, t2_idx, t1_score, t2_score):
-        t1_win = 1 if t1_score > t2_score else 0
-        t2_win = 1 if t2_score > t1_score else 0
-        t1_edge = float(t1_score) / (t1_score + t2_score)
-        t2_edge = float(t2_score) / (t1_score + t2_score)
-        self.M.ix[t1_idx, t1_idx] += (t1_win + t1_edge) 
-        self.M.ix[t2_idx, t1_idx] += (t1_win + t1_edge) 
-        self.M.ix[t2_idx, t2_idx] += (t2_win + t2_edge) 
-        self.M.ix[t1_idx, t2_idx] += (t2_win + t2_edge)
+    def update(self, E1_idx, E2_idx, E1_value, E2_value):
+        E1_win = 1 if E1_value > E2_value else 0
+        E2_win = 1 if E2_value > E1_value else 0
+        E1_edge = float(E1_value) / (E1_value + E2_value)
+        E2_edge = float(E2_value) / (E1_value + E2_value)
+        self.M.ix[E1_idx, E1_idx] += (E1_win + E1_edge)
+        self.M.ix[E2_idx, E1_idx] += (E1_win + E1_edge)
+        self.M.ix[E2_idx, E2_idx] += (E2_win + E2_edge)
+        self.M.ix[E1_idx, E2_idx] += (E2_win + E2_edge)
 
     def iterate(self, n=1):
         for _ in range(n):

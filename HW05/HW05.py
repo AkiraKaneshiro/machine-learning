@@ -30,7 +30,7 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 
 ### Scores
 scores = pd.read_csv(PATH + '/hw5text/cfb2014scores.csv', header=None)
-scores.columns = ['T1', 'T1p', 'T2', 'T2p']
+scores.columns = ['E1', 'E1v', 'E2', 'E2v']
 with open(PATH + '/hw5text/legend.txt') as f:
     teams = f.readlines()
 def get_team(idx):
